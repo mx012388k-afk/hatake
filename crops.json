@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.3.1",
+  "schemaVersion": "0.4.0",
   "updatedAt": "2026-10-12",
   "notes": "作物マスタのたたき台。全項目 confidence=draft（一般的な栽培知識に基づく初期値・要検証）。地域別の暦は中間地のみ作成。積算温度ルールは閾値未検証のため enabled=false。",
   "regions": {
@@ -510,6 +510,31 @@
         "sources": [
           "draft-general"
         ],
+        "confidence": "draft"
+      },
+      "pests": [
+        "thrips",
+        "downy",
+        "cutworm"
+      ],
+      "net": {
+        "recommended": false,
+        "mesh": null,
+        "how": "通常は不要です。アザミウマが多い場所では目合い0.4mm以下が必要です。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 25,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.0,
+          "late": 0.75
+        },
+        "p": 0.3,
+        "note": "収穫の2週間前ごろからは水やりを控えると、貯蔵性がよくなります。",
         "confidence": "draft"
       }
     },
@@ -1060,6 +1085,35 @@
         "sources": [
           "draft-general"
         ],
+        "confidence": "draft"
+      },
+      "pests": [
+        "aphid",
+        "cabbageworm",
+        "diamondback",
+        "armyworm",
+        "fleabeetle",
+        "softrot",
+        "cutworm"
+      ],
+      "net": {
+        "recommended": true,
+        "mesh": "0.6〜0.8mm",
+        "how": "種まき直後からトンネルで覆います。寒くなって虫が減ったら外してもかまいません。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 30,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.0,
+          "late": 0.9
+        },
+        "p": 0.4,
+        "note": "乾燥と過湿を繰り返すと根割れしやすくなります。乾き過ぎる前に与えます。",
         "confidence": "draft"
       }
     },
@@ -1636,6 +1690,31 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "pests": [
+        "carrotswallowtail",
+        "armyworm",
+        "cutworm"
+      ],
+      "net": {
+        "recommended": false,
+        "mesh": "1mm",
+        "how": "必須ではありません。キアゲハが多い場所では、目合い1mm程度で覆うと幼虫の被害を防げます。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 30,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.0,
+          "late": 0.9
+        },
+        "p": 0.35,
+        "note": "発芽までは特に乾燥に弱い作物です。",
+        "confidence": "draft"
       }
     },
     {
@@ -2131,6 +2210,33 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "pests": [
+        "aphid",
+        "cabbageworm",
+        "diamondback",
+        "fleabeetle",
+        "armyworm"
+      ],
+      "net": {
+        "recommended": true,
+        "mesh": "0.6〜0.8mm",
+        "how": "種まき直後からトンネルで覆います。収穫まで掛けたままでかまいません。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 20,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.0,
+          "late": 0.9
+        },
+        "p": 0.4,
+        "note": "乾燥と過湿を繰り返すと根割れしやすくなります。",
+        "confidence": "draft"
       }
     },
     {
@@ -2426,6 +2532,31 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "pests": [
+        "aphid",
+        "armyworm",
+        "downy"
+      ],
+      "net": {
+        "recommended": false,
+        "mesh": "0.8mm",
+        "how": "必須ではありません。ヨトウムシやアブラムシが多い時期は、目合い0.8mm程度で覆うと安心です。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 20,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.0,
+          "late": 0.95
+        },
+        "p": 0.3,
+        "note": "過湿にも弱いので、水はけのよい土で育てます。",
+        "confidence": "draft"
       }
     },
     {
@@ -2719,6 +2850,33 @@
         "sources": [
           "draft-general"
         ],
+        "confidence": "draft"
+      },
+      "pests": [
+        "aphid",
+        "cabbageworm",
+        "diamondback",
+        "fleabeetle",
+        "armyworm"
+      ],
+      "net": {
+        "recommended": true,
+        "mesh": "0.6〜0.8mm",
+        "how": "種まき直後からトンネルで覆います。虫が非常に付きやすいので、ネットがあると無農薬でも育てやすくなります。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 15,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.0,
+          "late": 0.95
+        },
+        "p": 0.3,
+        "note": "",
         "confidence": "draft"
       }
     },
@@ -3124,6 +3282,34 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "pests": [
+        "aphid",
+        "cabbageworm",
+        "diamondback",
+        "armyworm",
+        "cutworm",
+        "softrot"
+      ],
+      "net": {
+        "recommended": true,
+        "mesh": "0.8〜1mm",
+        "how": "植え付け直後からトンネルで覆います。株が大きくなるので、高さに余裕のある支柱を使います。11月以降、虫が減ったら外してもかまいません。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 30,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.05,
+          "late": 0.95
+        },
+        "p": 0.45,
+        "note": "結球が始まる頃に水が不足すると、玉が大きくなりません。",
+        "confidence": "draft"
       }
     },
     {
@@ -3528,6 +3714,34 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "pests": [
+        "aphid",
+        "cabbageworm",
+        "diamondback",
+        "armyworm",
+        "cutworm",
+        "downy"
+      ],
+      "net": {
+        "recommended": true,
+        "mesh": "0.8〜1mm",
+        "how": "植え付け直後からトンネルで覆います。株が大きくなるので、高さに余裕のある支柱を使います。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 30,
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.05,
+          "late": 0.95
+        },
+        "p": 0.45,
+        "note": "",
+        "confidence": "draft"
       }
     },
     {
@@ -3882,6 +4096,31 @@
         "sources": [
           "draft-general"
         ],
+        "confidence": "draft"
+      },
+      "pests": [
+        "ladybird28",
+        "aphid",
+        "lateblight"
+      ],
+      "net": {
+        "recommended": false,
+        "mesh": null,
+        "how": "通常は不要です。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 30,
+        "kc": {
+          "ini": 0.5,
+          "mid": 1.1,
+          "late": 0.75
+        },
+        "p": 0.35,
+        "note": "水のやりすぎはいもが腐る原因になります。土が乾いてから与えます。",
         "confidence": "draft"
       }
     },
@@ -4375,6 +4614,33 @@
         "sources": [
           "draft-general"
         ],
+        "confidence": "draft"
+      },
+      "pests": [
+        "whitefly",
+        "budworm",
+        "aphid",
+        "lateblight",
+        "graymold"
+      ],
+      "net": {
+        "recommended": false,
+        "mesh": "0.4〜1mm",
+        "how": "株が大きくなるとネットに収まらないため、植え付け直後の苗の保護（小さなトンネルや、あんどん）に使います。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 40,
+        "kc": {
+          "ini": 0.6,
+          "mid": 1.1,
+          "late": 0.8
+        },
+        "p": 0.5,
+        "note": "根付いた後はやや乾き気味に育てると、実が甘くなります。しおれない程度に与えます。",
         "confidence": "draft"
       }
     },
@@ -4915,6 +5181,34 @@
         "sources": [
           "draft-general"
         ],
+        "confidence": "draft"
+      },
+      "pests": [
+        "ladybird28",
+        "spidermite",
+        "whitefly",
+        "budworm",
+        "aphid",
+        "powdery"
+      ],
+      "net": {
+        "recommended": false,
+        "mesh": "0.4〜1mm",
+        "how": "株が大きくなるとネットに収まらないため、植え付け直後の苗の保護に使います。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 40,
+        "kc": {
+          "ini": 0.6,
+          "mid": 1.05,
+          "late": 0.9
+        },
+        "p": 0.4,
+        "note": "水が大好きな野菜です。夏は乾かさないように、朝にたっぷり与えます。",
         "confidence": "draft"
       }
     },
@@ -5490,6 +5784,34 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "pests": [
+        "cucumberbeetle",
+        "powdery",
+        "downy",
+        "aphid",
+        "spidermite",
+        "whitefly"
+      ],
+      "net": {
+        "recommended": false,
+        "mesh": "1mm",
+        "how": "ウリハムシ対策として、植え付け直後の苗をネットやあんどんで囲います。つるが伸びて支柱に誘引する頃に外します。",
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "water": {
+        "rootCm": 30,
+        "kc": {
+          "ini": 0.6,
+          "mid": 1.0,
+          "late": 0.75
+        },
+        "p": 0.35,
+        "note": "根が浅く乾燥に弱いので、夏は特に水切れに注意します。",
+        "confidence": "draft"
       }
     }
   ],
@@ -5497,5 +5819,516 @@
     "chemical": "化成肥料（8-8-8）は窒素・リン酸・カリが各8%の一般的な肥料です。成分の違う肥料を使う場合は、窒素の量が同じになるように加減してください。",
     "organic": "有機肥料は製品によって成分が大きく違います。袋の表示を確認して加減してください。"
   },
-  "regionNote": "寒地・暖地の暦は中間地からの補正値（秋まき系：寒地−14日・暖地＋14日、春夏系：寒地＋21日・暖地−14日）。収穫期は中間地のみ。"
+  "regionNote": "寒地・暖地の暦は中間地からの補正値（秋まき系：寒地−14日・暖地＋14日、春夏系：寒地＋21日・暖地−14日）。収穫期は中間地のみ。",
+  "pests": {
+    "aphid": {
+      "name": "アブラムシ",
+      "kind": "insect",
+      "months": [
+        4,
+        5,
+        6,
+        9,
+        10,
+        11
+      ],
+      "net": "0.6mm以下",
+      "signs": "新芽や葉の裏に小さな虫が群がり、葉が縮れたりベタついたりする。ウイルス病も運ぶ。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "防虫ネットで飛来・産卵を防ぐ（目合い0.6mm以下が確実）"
+        },
+        {
+          "type": "physical",
+          "text": "見つけたら、粘着テープで取る・水で洗い流す"
+        },
+        {
+          "type": "cultural",
+          "text": "シルバーマルチや光るテープで飛来を減らす"
+        },
+        {
+          "type": "cultural",
+          "text": "窒素肥料のやりすぎを避ける（やわらかい葉に集まる）"
+        },
+        {
+          "type": "biological",
+          "text": "テントウムシなど、畑にもともといる天敵を殺さない"
+        }
+      ]
+    },
+    "cabbageworm": {
+      "name": "アオムシ（モンシロチョウ）",
+      "kind": "insect",
+      "months": [
+        4,
+        5,
+        6,
+        9,
+        10,
+        11
+      ],
+      "net": "1mm以下",
+      "signs": "葉に穴があき、緑色の幼虫や黒いフンが見つかる。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "防虫ネットで飛来・産卵を防ぐ"
+        },
+        {
+          "type": "physical",
+          "text": "葉の裏の卵（黄色い小さな粒）や幼虫を手で取る"
+        }
+      ]
+    },
+    "diamondback": {
+      "name": "コナガ",
+      "kind": "insect",
+      "months": [
+        4,
+        5,
+        6,
+        9,
+        10,
+        11
+      ],
+      "net": "0.8mm以下",
+      "signs": "葉の裏から薄皮を残して食べられ、白く透けた跡が残る。小さな緑の幼虫は触ると激しく動く。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "防虫ネットで飛来・産卵を防ぐ（目合い0.8mm以下）"
+        },
+        {
+          "type": "physical",
+          "text": "葉の裏をこまめに見て幼虫を取る"
+        }
+      ]
+    },
+    "armyworm": {
+      "name": "ヨトウムシ",
+      "kind": "insect",
+      "months": [
+        5,
+        6,
+        9,
+        10
+      ],
+      "net": "1mm以下",
+      "signs": "夜に葉を大きく食べる。昼は株元の土の中に隠れている。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "防虫ネットで飛来・産卵を防ぐ（成虫の産卵を防ぐ）"
+        },
+        {
+          "type": "physical",
+          "text": "葉の裏の白い毛に包まれた卵の固まりを葉ごと取る"
+        },
+        {
+          "type": "physical",
+          "text": "食害があったら株元の土を浅く掘って幼虫を探す"
+        }
+      ]
+    },
+    "cutworm": {
+      "name": "ネキリムシ（カブラヤガの幼虫）",
+      "kind": "insect",
+      "months": [
+        4,
+        5,
+        6,
+        9,
+        10
+      ],
+      "net": null,
+      "signs": "植えたばかりの苗が、株元から切り倒される。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "被害株の周りの土を浅く掘って幼虫を取る"
+        },
+        {
+          "type": "physical",
+          "text": "苗の周りに紙筒（トイレットペーパーの芯など）を差して守る"
+        },
+        {
+          "type": "cultural",
+          "text": "植え付け前に雑草を取り除いておく"
+        }
+      ]
+    },
+    "fleabeetle": {
+      "name": "キスジノミハムシ",
+      "kind": "insect",
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "net": "0.6mm以下",
+      "signs": "葉に小さな丸い穴がたくさんあく。幼虫は大根・カブの根の表面をかじる。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "防虫ネットで飛来・産卵を防ぐ（体が小さいので0.6mm以下）"
+        },
+        {
+          "type": "cultural",
+          "text": "アブラナ科の連作を避け、前作の残りを片付ける（土の中から出てくる）"
+        }
+      ]
+    },
+    "cucumberbeetle": {
+      "name": "ウリハムシ",
+      "kind": "insect",
+      "months": [
+        5,
+        6,
+        7
+      ],
+      "net": "1mm以下",
+      "signs": "オレンジ色の甲虫が、葉を丸く輪を描くように食べる。苗のうちは被害が大きい。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "植え付け直後は苗を「あんどん」（肥料袋などで囲う）か防虫ネットで覆う"
+        },
+        {
+          "type": "cultural",
+          "text": "シルバーマルチで飛来を減らす"
+        },
+        {
+          "type": "physical",
+          "text": "動きの鈍い朝のうちに捕まえる"
+        }
+      ]
+    },
+    "ladybird28": {
+      "name": "ニジュウヤホシテントウ",
+      "kind": "insect",
+      "months": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "net": null,
+      "signs": "背中に斑点の多いテントウムシ。葉の表面を削るように食べ、網目状の跡が残る。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "成虫・幼虫・葉の裏の黄色い卵を見つけたら取る"
+        },
+        {
+          "type": "cultural",
+          "text": "じゃがいもとナスを近くに植えない（行き来して増える）"
+        }
+      ]
+    },
+    "budworm": {
+      "name": "オオタバコガ",
+      "kind": "insect",
+      "months": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "net": "4mm以下",
+      "signs": "実に丸い穴があき、中に幼虫が入る。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "穴のあいた実や、食べられた新芽は早めに取って処分する"
+        },
+        {
+          "type": "physical",
+          "text": "防虫ネットで成虫の産卵を防ぐ（株が小さいうち）"
+        }
+      ]
+    },
+    "carrotswallowtail": {
+      "name": "キアゲハ",
+      "kind": "insect",
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "net": "4mm以下",
+      "signs": "緑と黒のしま模様の幼虫が、葉を大量に食べる。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "見つけたら幼虫を取る（数が少ないうちなら十分）"
+        },
+        {
+          "type": "physical",
+          "text": "防虫ネットで飛来・産卵を防ぐ"
+        }
+      ]
+    },
+    "whitefly": {
+      "name": "コナジラミ",
+      "kind": "insect",
+      "months": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "net": "0.4mm以下",
+      "signs": "葉の裏に白い小さな虫が付き、触ると飛び立つ。すす病の原因にもなる。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "黄色の粘着シートで捕まえる"
+        },
+        {
+          "type": "physical",
+          "text": "被害の多い下葉を取り除く"
+        },
+        {
+          "type": "physical",
+          "text": "目合い0.4mm以下のネットなら防げる（苗のうち）"
+        }
+      ]
+    },
+    "thrips": {
+      "name": "アザミウマ（スリップス）",
+      "kind": "insect",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "net": "0.4mm以下",
+      "signs": "葉にかすれたような白い筋や斑点ができる。とても小さく見つけにくい。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "青色の粘着シートで捕まえる"
+        },
+        {
+          "type": "cultural",
+          "text": "畑の周りの雑草を減らす（すみかになる）"
+        }
+      ]
+    },
+    "spidermite": {
+      "name": "ハダニ",
+      "kind": "insect",
+      "months": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "net": null,
+      "weather": "dryWarm",
+      "signs": "葉に白いかすり状の小さな斑点が広がる。乾燥・高温で急に増える。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "葉の裏に水をかける（葉水）。水に弱い"
+        },
+        {
+          "type": "cultural",
+          "text": "乾燥させすぎない"
+        }
+      ]
+    },
+    "powdery": {
+      "name": "うどんこ病",
+      "kind": "disease",
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "net": null,
+      "weather": "dryWarm",
+      "signs": "葉に白い粉をまぶしたようなカビが広がる。",
+      "measures": [
+        {
+          "type": "cultural",
+          "text": "株間をあけて風通しをよくする・窒素肥料を控えめにする"
+        },
+        {
+          "type": "physical",
+          "text": "白くなった葉は早めに取り除く"
+        },
+        {
+          "type": "specific",
+          "text": "重曹（特定農薬）を薄めて散布する（目安：水1Lに1g程度。濃いと葉を傷める）"
+        }
+      ]
+    },
+    "downy": {
+      "name": "べと病",
+      "kind": "disease",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        9,
+        10
+      ],
+      "net": null,
+      "weather": "wet",
+      "signs": "葉に黄色い角ばった斑点ができ、裏に灰色のカビが出る。雨が続くと広がる。",
+      "measures": [
+        {
+          "type": "cultural",
+          "text": "高畝にして水はけをよくする"
+        },
+        {
+          "type": "cultural",
+          "text": "マルチや敷きわらで泥はねを防ぐ"
+        },
+        {
+          "type": "physical",
+          "text": "病気の葉は取り除いて畑の外で処分する"
+        },
+        {
+          "type": "cultural",
+          "text": "株間をあけて風通しをよくする"
+        }
+      ]
+    },
+    "softrot": {
+      "name": "軟腐病",
+      "kind": "disease",
+      "months": [
+        8,
+        9,
+        10
+      ],
+      "net": null,
+      "weather": "wet",
+      "signs": "株元や根がとろけるように腐り、強いにおいがする。高温で雨が多いと出やすい。",
+      "measures": [
+        {
+          "type": "cultural",
+          "text": "高畝にして水はけをよくする"
+        },
+        {
+          "type": "cultural",
+          "text": "作業で株に傷を付けない（傷口から入る）"
+        },
+        {
+          "type": "physical",
+          "text": "発病した株は抜いて畑の外で処分する"
+        },
+        {
+          "type": "cultural",
+          "text": "連作を避ける"
+        }
+      ]
+    },
+    "graymold": {
+      "name": "灰色かび病",
+      "kind": "disease",
+      "months": [
+        4,
+        5,
+        6,
+        10,
+        11
+      ],
+      "net": null,
+      "weather": "wet",
+      "signs": "花や実、葉に灰色のカビが生える。低めの気温で湿気が多いと出やすい。",
+      "measures": [
+        {
+          "type": "physical",
+          "text": "咲き終わった花がらを取り除く"
+        },
+        {
+          "type": "cultural",
+          "text": "下葉を取って風通しをよくする"
+        },
+        {
+          "type": "specific",
+          "text": "重曹（特定農薬）を薄めて散布する（目安：水1Lに1g程度）"
+        }
+      ]
+    },
+    "lateblight": {
+      "name": "疫病",
+      "kind": "disease",
+      "months": [
+        5,
+        6,
+        7
+      ],
+      "net": null,
+      "weather": "wet",
+      "signs": "葉に暗い褐色の大きな斑点が広がり、急に枯れ込む。梅雨どきに多い。",
+      "measures": [
+        {
+          "type": "cultural",
+          "text": "雨よけをする・マルチで泥はねを防ぐ"
+        },
+        {
+          "type": "physical",
+          "text": "病気の葉や株は早めに取り除いて処分する"
+        },
+        {
+          "type": "cultural",
+          "text": "水はけをよくする"
+        }
+      ]
+    }
+  },
+  "netGuide": {
+    "steps": [
+      "種まき・植え付けの直後、虫が来る前に張ります（後から張ると、中に虫を閉じ込めてしまいます）。",
+      "トンネル用の支柱を1〜1.5mおきに立て、ネットが作物に触れない高さにします（触れているところから産卵されます）。",
+      "裾は土をかぶせるか、Uピンや重しで、すき間なく押さえます。すき間から入られるのが一番多い失敗です。",
+      "間引きや追肥でネットを開けたら、中に虫がいないか確認して、すぐに閉めます。",
+      "目合いが細かいほど風通しが悪くなります。夏は蒸れに注意し、必要以上に細かいネットは避けます。",
+      "前作の残りや雑草は片付けてから張ります（土の中から出てくる虫は防げません）。"
+    ],
+    "meshNote": "目合い（網目の大きさ）の目安：チョウ・ガ類は1mm以下、コナガは0.8mm以下、アブラムシ・キスジノミハムシは0.6mm以下、コナジラミ・アザミウマは0.4mm以下。"
+  },
+  "pesticideNote": {
+    "free": "無農薬で育てる場合も、使ってよい防除資材は「登録農薬」と「特定農薬（食酢・重曹・天敵（同じ都道府県内の土着天敵）・エチレン・次亜塩素酸水）」だけです。登録のない自家製の資材を、病害虫を防ぐ目的で使うことは農薬取締法で認められていません。",
+    "normal": "農薬を使う場合は、その作物に登録のある農薬を、ラベルに書かれた使用時期・回数・濃度を守って使ってください。",
+    "label": "収穫物を販売するときは「無農薬」と表示できません（特別栽培農産物の表示ガイドライン）。農薬を使わなかった場合は「農薬：栽培期間中不使用」と表示します。"
+  },
+  "soilTypes": {
+    "sandy": {
+      "label": "砂っぽい（水はけがよい）",
+      "awcPerCm": 0.7
+    },
+    "normal": {
+      "label": "ふつうの畑の土",
+      "awcPerCm": 1.4
+    },
+    "clay": {
+      "label": "粘土質（水持ちがよい）",
+      "awcPerCm": 1.7
+    },
+    "planter": {
+      "label": "プランター・鉢",
+      "awcPerCm": 1.2,
+      "maxRootCm": 15,
+      "etFactor": 1.3
+    }
+  }
 }

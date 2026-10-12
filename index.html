@@ -137,6 +137,13 @@
     .wtag.dry, .wtag.cool { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
     .guide { font-size: 13px; margin: 0 0 8px; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--surface); }
     .guide b { font-size: 12px; color: var(--accent); }
+    .pest + .pest { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 6px; }
+    .pest .wtag { margin-left: 6px; }
+    .meter { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin: 8px 0 4px; }
+    .meter span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--warn)); }
+    details { margin: 8px 0; }
+    details summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+    details ol, .prep-step ul { margin: 6px 0; padding-left: 1.3em; }
     .insight { display: grid; grid-template-columns: auto 1fr; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; margin-top: 6px; }
     .insight .ik { font-size: 11px; color: var(--muted); background: var(--surface-2); border-radius: 6px; padding: 2px 7px; align-self: start; white-space: nowrap; }
     .subhead { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid var(--line); font-weight: 700; font-size: 14px; }
@@ -326,6 +333,13 @@
         <div><label for="fLat">緯度</label><input id="fLat" type="number" step="0.0001" required></div>
         <div><label for="fLng">経度</label><input id="fLng" type="number" step="0.0001" required></div>
       </div>
+      <label for="fSoil">土の種類（水やりの判定に使用）</label>
+      <select id="fSoil">
+        <option value="normal">ふつうの畑の土</option>
+        <option value="sandy">砂っぽい（水はけがよい）</option>
+        <option value="clay">粘土質（水持ちがよい）</option>
+        <option value="planter">プランター・鉢</option>
+      </select>
       <div class="row" style="margin-top:8px">
         <button type="button" id="btnGeo">現在地を使う</button>
         <span class="small muted" id="geoMsg"></span>
@@ -364,6 +378,11 @@
         <input id="pLen" type="number" step="0.1" min="0" inputmode="decimal" placeholder="長さ（m）">
         <input id="pWid" type="number" step="0.1" min="0" inputmode="decimal" placeholder="幅（m）">
       </div>
+      <div class="subhead">栽培の方法</div>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="pPesticideFree"> 無農薬で育てる</label>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="pUseNet"> 防虫ネットを使う</label>
+      <p class="small muted" id="pNetHint" style="margin:2px 0 0 26px"></p>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="pMulch"> マルチ（黒いポリフィルムなど）を張る</label>
       <div class="subhead">土づくり・肥料の設定</div>
       <label for="pFertDisplay">肥料の表示</label>
       <select id="pFertDisplay">
@@ -458,6 +477,11 @@
         </select>
       </div>
     </div>
+    <div class="subhead">栽培の方法</div>
+    <label class="check" style="margin-top:8px"><input type="checkbox" id="dPesticideFree"> 無農薬で育てる</label>
+    <label class="check" style="margin-top:6px"><input type="checkbox" id="dUseNet"> 防虫ネットを使う</label>
+    <label class="check" style="margin-top:6px"><input type="checkbox" id="dMulch"> マルチを張っている</label>
+    <div id="dCare"></div>
     <div id="dPrep"></div>
     <h2 style="margin:16px 0 6px">作業の記録</h2>
     <table class="events" id="dEvents"></table>

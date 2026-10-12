@@ -1,4 +1,4 @@
-// 畑ノート 試作版 v0.3（実績・時期外れの注意・12品目）
+// 畑ノート 試作版 v0.4（無農薬・防虫ネット・水やり判定）
 // 素のJS（ES Modules）＋ Firebase（Auth / Firestore オフライン永続化）
 // 日付はすべて 'YYYY-MM-DD' 文字列（JST）で扱う。
 
@@ -26,6 +26,7 @@ const EVENT_LABELS = {
   sprout: "芽が出た",
   budThin: "芽かき",
   stake: "支柱立て",
+  netOn: "防虫ネットを張った",
   germinate: "発芽",
   transplant: "定植",
   rooted: "活着（根付いた）",
@@ -41,7 +42,7 @@ const EVENT_LABELS = {
   harvestEnd: "収穫終了"
 };
 const EVENT_ORDER = [
-  "prepLime", "prepBase", "prepRidge", "sow", "plant", "germinate", "sprout", "transplant", "rooted", "stake",
+  "prepLime", "prepBase", "prepRidge", "sow", "plant", "netOn", "germinate", "sprout", "transplant", "rooted", "stake",
   "thin1", "thin2", "thin3", "budThin", "fertilize1", "fertilize2", "fertilize3", "fertilize4",
   "bulbStart", "harvestStart", "harvestEnd"
 ];
@@ -222,6 +223,7 @@ function eventsForPlanting(crop, planting) {
   set.add("harvestStart");
   set.add("harvestEnd");
   if (crop.soilPrep) crop.soilPrep.steps.forEach((st) => set.add(st.event));
+  if (planting.useNet) set.add("netOn");
   const ordered = EVENT_ORDER.filter((e) => set.has(e));
   set.forEach((e) => { if (!ordered.includes(e)) ordered.push(e); });
   return ordered;
@@ -388,7 +390,7 @@ async function refreshWeather() {
   for (const f of state.fields) {
     const key = "wx:" + f.id;
     const cached = lsGet(key, null);
-    const fresh = cached && cached.lat === f.lat && cached.lng === f.lng
+    const fresh = cached && cached.v === 2 && cached.lat === f.lat && cached.lng === f.lng
       && (Date.now() - cached.fetchedAt) < WX_TTL_MS;
     if (cached) state.weather[f.id] = { ...cached, stale: !fresh };
     if (fresh || !navigator.onLine) continue;
@@ -396,12 +398,25 @@ async function refreshWeather() {
       const url = "https://api.open-meteo.com/v1/forecast"
         + "?latitude=" + encodeURIComponent(f.lat)
         + "&longitude=" + encodeURIComponent(f.lng)
-        + "&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum"
+        + "&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,et0_fao_evapotranspiration"
+        + "&hourly=relative_humidity_2m"
         + "&timezone=Asia%2FTokyo&past_days=92&forecast_days=7";
       const res = await fetch(url);
       if (!res.ok) throw new Error("HTTP " + res.status);
       const json = await res.json();
-      const entry = { lat: f.lat, lng: f.lng, fetchedAt: Date.now(), daily: json.daily };
+      // 湿度は1時間ごとの値を日平均にして保存（端末の保存量を抑える）
+      const hum = {};
+      const h = json.hourly || {};
+      (h.time || []).forEach((t, i) => {
+        const v = h.relative_humidity_2m ? h.relative_humidity_2m[i] : null;
+        if (typeof v !== "number") return;
+        const d = String(t).slice(0, 10);
+        hum[d] = hum[d] || [0, 0];
+        hum[d][0] += v; hum[d][1]++;
+      });
+      const humidity = {};
+      Object.keys(hum).forEach((d) => { humidity[d] = Math.round(hum[d][0] / hum[d][1]); });
+      const entry = { v: 2, lat: f.lat, lng: f.lng, fetchedAt: Date.now(), daily: json.daily, humidity };
       lsSet(key, entry);
       state.weather[f.id] = { ...entry, stale: false };
     } catch (err) {
@@ -413,12 +428,16 @@ async function refreshWeather() {
 
 /** 判定エンジンに渡す気象データ。今日より前＝観測扱い、今日以降＝予報扱い */
 function buildCtx(fieldId, today) {
-  const ctx = { today, dailyMeanTemps: {}, observedPrecip: {}, forecast: [] };
+  const ctx = { today, dailyMeanTemps: {}, observedPrecip: {}, observedTmax: {}, forecast: [], days: {}, humidity: {} };
   const wx = state.weather[fieldId];
   if (!wx || !wx.daily) return ctx;
   const d = wx.daily;
+  ctx.humidity = wx.humidity || {};
   d.time.forEach((date, i) => {
+    const et0 = d.et0_fao_evapotranspiration ? d.et0_fao_evapotranspiration[i] : undefined;
+    ctx.days[date] = { et0, rain: d.precipitation_sum[i] };
     if (date < today) {
+      if (typeof d.temperature_2m_max[i] === "number") ctx.observedTmax[date] = d.temperature_2m_max[i];
       if (typeof d.temperature_2m_mean[i] === "number") ctx.dailyMeanTemps[date] = d.temperature_2m_mean[i];
       if (typeof d.precipitation_sum[i] === "number") ctx.observedPrecip[date] = d.precipitation_sum[i];
     } else {
@@ -431,6 +450,176 @@ function buildCtx(fieldId, today) {
     }
   });
   return ctx;
+}
+
+// ---------- 栽培の方法（無農薬・防虫ネット・マルチ）と水やり ----------
+function soilOf(fieldId) {
+  const f = fieldById(fieldId);
+  const key = (f && f.soil) || "normal";
+  const types = (state.master && state.master.soilTypes) || {};
+  return { key, ...(types[key] || types.normal || { label: "ふつうの畑の土", awcPerCm: 1.4 }) };
+}
+
+/** その週の月曜日（週ごとの「見回りした」の記録に使う） */
+function weekKey(dateStr) {
+  const t = new Date(Date.UTC(Number(dateStr.slice(0, 4)), Number(dateStr.slice(5, 7)) - 1, Number(dateStr.slice(8, 10))));
+  const dow = (t.getUTCDay() + 6) % 7;
+  return Engine._util.addDays(dateStr, -dow);
+}
+
+function recordWater(planting, date) {
+  fire(updateDoc(subDoc("plantings", planting.id), { lastWatered: date, updatedAt: serverTimestamp() }), "水やりを記録しました");
+  fire(addDoc(subCol("logs"), { plantingId: planting.id, event: "water", date, createdAt: serverTimestamp() }));
+}
+
+function careLabel(p) {
+  return [p.pesticideFree ? "無農薬" : "農薬を使う場合あり", p.useNet ? "防虫ネットあり" : "防虫ネットなし", p.mulch ? "マルチあり" : "マルチなし"].join("・");
+}
+
+function measuresFor(pest, p) {
+  // 無農薬でも使えるのは、物理的・耕種的・生物的な方法と特定農薬だけ
+  return pest.measures.map((m) => m.text);
+}
+
+/** 今日やることに加える項目：防虫ネットを張る／水やり／病害虫の見回り */
+function extraTasks(crop, p, ctx, res, stageLabel, dismissed) {
+  const out = [];
+  const today = ctx.today;
+  const base = { kind: "custom", planting: p, crop, stageLabel, confidence: "draft" };
+
+  // 防虫ネット
+  if (p.useNet && !(p.events && p.events.netOn) && !dismissed.has(p.id + ":net")) {
+    const n = crop.net || {};
+    const guide = state.master.netGuide || { steps: [] };
+    out.push({ ...base, ruleId: "net", priority: 1, title: "防虫ネットを張る",
+      message: "虫が来る前に、今日のうちに張りましょう。" + (n.mesh ? "目合いは" + n.mesh + "が目安です。" : ""),
+      extra: '<div class="guide"><b>張り方のポイント</b>' + guide.steps.slice(0, 3).map((x) => "<div>・" + esc(x) + "</div>").join("") + "</div>",
+      why: "この作付けは「防虫ネットを使う」設定です",
+      resolvedBy: "netOn",
+      actions: [{ act: "done", label: "張った（今日）", primary: true }, { act: "pick", label: "詳しい使い方" }] });
+  }
+
+  // 水やり（ステージ別の水やりルールが出ている日は重ねない）
+  const hasWaterRule = res.tasks.some((t) => t.action === "water");
+  const soil = soilOf(p.fieldId);
+  const wb = hasWaterRule ? null : Engine.waterBalance(crop, p, { today, days: ctx.days }, soil);
+  if (wb && (wb.status === "need" || wb.status === "soon" || wb.status === "rainSoon") && !dismissed.has(p.id + ":water")) {
+    const area = bedArea(p);
+    // 一度に与える量は1㎡あたり20Lまで（それ以上は流れてしまうので、朝夕などに分ける）
+    const L = Math.min(20, wb.amountMm);
+    const amount = "1㎡あたり約" + L + "L" + (area ? "（この畝 " + fmtArea(area) + "㎡で 約" + Math.round(L * area) + "L）" : "")
+      + (wb.amountMm > 20 ? "。かなり乾いているので、一度に与えず2回に分けると土にしみ込みやすくなります" : "");
+    const hums = [1, 2, 3].map((i) => ctx.humidity[Engine._util.addDays(today, -i)]).filter((v) => typeof v === "number");
+    const hum = hums.length ? Math.round(hums.reduce((a, b) => a + b, 0) / hums.length) : null;
+    const why = [
+      "土の乾き（推定）" + wb.dryPct + "%",
+      wb.lastRain ? "最後のまとまった雨 " + md(wb.lastRain) : "最近まとまった雨なし",
+      "直近3日の蒸発 約" + wb.et3 + "mm",
+      hum !== null ? "平均湿度 " + hum + "%" : "",
+      "土：" + soil.label + (p.mulch ? "・マルチあり" : "")
+    ].filter(Boolean).join(" / ");
+    const note = crop.water && crop.water.note ? '<div class="guide"><b>' + esc(crop.name) + "の水やり</b><div>" + esc(crop.water.note) + "</div></div>" : "";
+    if (wb.status === "need") {
+      out.push({ ...base, ruleId: "water", priority: 1, title: "水やりが必要です",
+        message: "土が乾いてきています。朝か夕方に、株元へたっぷり与えましょう。目安：" + amount + "。",
+        extra: note, why, actions: [{ act: "water", label: "水やりした（今日）", primary: true }, { act: "dismiss", label: "確認した" }] });
+    } else if (wb.status === "rainSoon") {
+      out.push({ ...base, ruleId: "water", priority: 3, title: "水やりは雨を待ちましょう",
+        message: "土は乾いてきていますが、今日・明日にまとまった雨（約" + wb.rainNextMm + "mm）が予報されています。雨が降らなかったら水やりしましょう。",
+        extra: "", why, actions: [{ act: "water", label: "水やりした（今日）" }, { act: "dismiss", label: "確認した", primary: true }] });
+    } else {
+      out.push({ ...base, ruleId: "water", priority: 3, title: "明日ごろ水やりが必要になりそうです",
+        message: "土が乾き始めています。今日は様子を見て、指で土を触って乾いていれば水やりしましょう。",
+        extra: "", why, actions: [{ act: "water", label: "水やりした（今日）" }, { act: "dismiss", label: "確認した", primary: true }] });
+    }
+  }
+
+  // 病害虫の見回り（週に1回）
+  const wk = new Set(lsGet("dismissw:" + weekKey(today), []));
+  const alerts = Engine.pestAlerts(crop, state.master, ctx);
+  if (alerts.length && !wk.has(p.id + ":pest")) {
+    const boosted = alerts.filter((a) => a.boost);
+    const top = alerts.slice(0, 3).map((a) => state.master.pests[a.id]);
+    const reason = boosted.length
+      ? (boosted[0].boost === "wet" ? "雨が続いていて、" : "乾燥して暑い日が続いていて、") + boosted.map((a) => a.name).join("・") + "が出やすい状態です。"
+      : "";
+    const lines = top.map((pest, i) => {
+      const a = alerts[i];
+      const net = p.useNet && pest.net ? "（防虫ネットで防げます。裾のすき間に注意）" : "";
+      return '<div class="pest"><b>' + esc(pest.name) + "</b>" + (a.boost ? '<span class="wtag hot">出やすい</span>' : "")
+        + '<div class="small">' + esc(pest.signs) + esc(net) + "</div>"
+        + '<div class="small muted">対策：' + esc(measuresFor(pest, p).slice(0, 2).join("／")) + "</div></div>";
+    }).join("");
+    out.push({ ...base, ruleId: "pest", priority: boosted.length ? 2 : 3,
+      title: "病害虫の見回り" + (boosted.length ? "（注意）" : ""),
+      message: reason + "この時期は次の病害虫に注意しましょう。早く見つけるほど、農薬を使わずに抑えやすくなります。",
+      extra: '<div class="amounts">' + lines + "</div>",
+      why: "今の時期（" + Number(today.slice(5, 7)) + "月）に多い病害虫" + (alerts.length > 3 ? "（ほか" + (alerts.length - 3) + "件は作付けの詳細へ）" : ""),
+      actions: [{ act: "week", label: "見回りした（今週）", primary: true }, { act: "pick", label: "対策を詳しく" }] });
+  }
+  return out;
+}
+
+/** 作付けの詳細・確認画面：病害虫と対策、防虫ネットの使い方 */
+function pestHtml(crop, p, compact) {
+  const m = state.master;
+  if (!crop.pests) return "";
+  const n = crop.net || {};
+  const notes = m.pesticideNote || {};
+  let html = '<div class="prep"><div class="spread"><b>病害虫と対策</b><span class="badge draft">目安・検証中</span></div>'
+    + '<div class="small muted">栽培の方法：' + esc(careLabel(p)) + "</div>";
+  // 防虫ネット
+  html += '<div class="guide"><b>防虫ネット' + (n.recommended ? "（おすすめ）" : "") + "</b>"
+    + "<div>" + esc(n.how || "") + (n.mesh ? "目合いの目安：" + esc(n.mesh) + "。" : "") + "</div>"
+    + (n.recommended && !p.useNet ? '<div style="color:var(--warn)">この野菜は防虫ネットの使用をおすすめします。' + (p.pesticideFree ? "無農薬で育てる場合は特に効果的です。" : "") + "</div>" : "")
+    + "</div>";
+  if (!compact) {
+    html += '<details class="small"><summary>防虫ネットの使い方</summary><ol>'
+      + (m.netGuide.steps || []).map((x) => "<li>" + esc(x) + "</li>").join("") + "</ol>"
+      + '<div class="muted">' + esc(m.netGuide.meshNote || "") + "</div></details>";
+    html += crop.pests.map((id) => {
+      const pest = m.pests[id];
+      if (!pest) return "";
+      return '<div class="prep-step"><div class="spread"><b>' + esc(pest.name) + "</b>"
+        + '<span class="small muted">' + esc(pest.kind === "disease" ? "病気" : "害虫") + " · " + esc(monthsText(pest.months)) + "</span></div>"
+        + '<div class="small">' + esc(pest.signs) + "</div>"
+        + '<ul class="small">' + measuresFor(pest, p).map((t) => "<li>" + esc(t) + "</li>").join("")
+        + (p.useNet && pest.net ? "<li>防虫ネット（目合い" + esc(pest.net) + "）で防げます</li>" : "") + "</ul></div>";
+    }).join("");
+  } else {
+    html += '<div class="small">この時期までに注意する病害虫：' + esc(crop.pests.map((id) => (m.pests[id] || {}).name).filter(Boolean).join("、")) + "</div>";
+  }
+  html += '<div class="small" style="margin-top:8px">' + esc(p.pesticideFree ? notes.free : notes.normal) + "</div>";
+  if (p.pesticideFree) html += '<div class="small muted" style="margin-top:4px">' + esc(notes.label) + "</div>";
+  return html + "</div>";
+}
+
+function monthsText(months) {
+  // 連続する月をまとめる（例：4〜6月、9〜11月）
+  const ms = months.slice().sort((a, b) => a - b);
+  const parts = [];
+  let s = ms[0], prev = ms[0];
+  for (let i = 1; i <= ms.length; i++) {
+    if (ms[i] === prev + 1) { prev = ms[i]; continue; }
+    parts.push(s === prev ? s + "月" : s + "〜" + prev + "月");
+    s = prev = ms[i];
+  }
+  return parts.join("、");
+}
+
+/** 作付けの詳細：水やりの状態 */
+function waterHtml(crop, p) {
+  if (p.status !== "active") return "";
+  const today = todayJST();
+  const ctx = buildCtx(p.fieldId, today);
+  const wb = Engine.waterBalance(crop, p, { today, days: ctx.days }, soilOf(p.fieldId));
+  if (!wb) return '<div class="prep small muted">水やりの判定には、畑の天気データ（蒸発散量）が必要です。オンラインで「今日」を開くと取得します。</div>';
+  const label = { need: "水やりが必要", soon: "そろそろ必要", rainSoon: "雨を待つ", ok: "足りています", watered: "今日は水やり済み" }[wb.status];
+  return '<div class="prep"><div class="spread"><b>水やりの状態</b><span class="badge draft">推定</span></div>'
+    + '<div class="meter"><span style="width:' + Math.min(100, wb.dryPct) + '%"></span></div>'
+    + '<div class="small">' + esc(label) + "（土の乾き 推定" + wb.dryPct + "%）" + (p.lastWatered ? " · 最後の水やり " + esc(md(p.lastWatered)) : "") + "</div>"
+    + '<div class="small muted">降水量と、気温・湿度・風・日射から計算した蒸発量をもとに、根のまわりの水分を推定しています。実際の土の状態は場所によって違うので、指で触って確かめてください。</div>'
+    + '<div class="row" style="margin-top:6px"><button class="ghost" id="btnWaterDetail">水やりした（今日）</button></div></div>';
 }
 
 // ---------- 画面：今日 ----------
@@ -455,12 +644,15 @@ function renderToday() {
       items.push({ ...t, planting: p, crop, stageLabel: "土づくり", resolvedBy: t.event });
     });
     if (isPlanned(p)) return;
-    const res = Engine.evaluatePlanting(crop, p, buildCtx(p.fieldId, today));
+    const ctx = buildCtx(p.fieldId, today);
+    const res = Engine.evaluatePlanting(crop, p, ctx);
     res.tasks.forEach((t) => {
       if (dismissed.has(p.id + ":" + t.ruleId)) return;
       const rule = crop.rules.find((r) => r.id === t.ruleId);
       items.push({ ...t, kind: "rule", planting: p, crop, stageLabel: stageName(crop, res.stage), resolvedBy: rule ? rule.resolvedBy : null });
     });
+    const stageLabel = stageName(crop, res.stage);
+    extraTasks(crop, p, ctx, res, stageLabel, dismissed).forEach((t) => items.push(t));
   });
   items.sort((a, b) => (a.priority - b.priority) || ((b.overdue ? 1 : 0) - (a.overdue ? 1 : 0)));
 
@@ -476,7 +668,10 @@ function renderToday() {
         + (t.confidence === "draft" ? '<span class="badge draft">目安・検証中</span>' : "");
       let title = t.title, msg = t.message, extra = "", why = "";
       const anchorLabel = t.anchor ? (EVENT_LABELS[t.anchor.event] || t.anchor.event) : "";
-      if (t.kind === "start") {
+      if (t.kind === "custom") {
+        extra = t.extra || "";
+        why = t.why || "";
+      } else if (t.kind === "start") {
         title = anchorLabel + (t.daysLeft < 0 ? "の予定日を過ぎています" : "の予定日です");
         msg = "済んだら記録しましょう。ここから追肥や間引きなどの案内が始まります。予定を変える場合は、作付けの詳細から予定日を変更できます。";
         why = anchorLabel + "予定日：" + md(t.anchor.date);
@@ -491,7 +686,9 @@ function renderToday() {
         why = t.reasons.map((r) => prettyReason(r, t.crop)).join(" / ");
       }
       const btnLabel = t.kind === "start" ? "記録する（今日）" : "やった（今日）";
-      const btn = t.resolvedBy
+      const btn = t.actions
+        ? t.actions.map((a) => '<button class="' + (a.primary ? "primary" : "ghost") + '" data-act="' + a.act + '" data-i="' + i + '">' + esc(a.label) + "</button>").join("")
+        : t.resolvedBy
         ? '<button class="primary" data-act="done" data-i="' + i + '">' + btnLabel + "</button>"
           + '<button class="ghost" data-act="pick" data-i="' + i + '">日付を選んで記録</button>'
         : '<button data-act="dismiss" data-i="' + i + '">確認した</button>';
@@ -511,6 +708,14 @@ function renderToday() {
         const t = items[Number(b.dataset.i)];
         if (b.dataset.act === "done") {
           recordEvent(t.planting, t.resolvedBy, today);
+        } else if (b.dataset.act === "water") {
+          recordWater(t.planting, today);
+        } else if (b.dataset.act === "week") {
+          const wk = weekKey(today);
+          const set = new Set(lsGet("dismissw:" + wk, []));
+          set.add(t.planting.id + ":" + t.ruleId);
+          lsSet("dismissw:" + wk, Array.from(set));
+          renderToday();
         } else if (b.dataset.act === "pick") {
           openDetail(t.planting.id);
         } else {
@@ -1143,6 +1348,8 @@ function openAddPlanting(cropId, methodKey) {
   const last = lsGet("lastFert", {});
   $("#pFertDisplay").value = last.fertDisplay === "timing" ? "timing" : "amount";
   $("#pFertType").value = last.fertType === "organic" ? "organic" : "chemical";
+  $("#pPesticideFree").checked = !!last.pesticideFree;
+  $("#pMulch").checked = !!last.mulch;
   showAddStep(1);
   syncMethodOptions();
   if (methodKey && $("#pMethod").querySelector('option[value="' + methodKey + '"]')) {
@@ -1164,6 +1371,9 @@ function syncMethodOptions() {
   $("#pMethod").innerHTML = Object.entries(crop.startMethods).map(([k, m]) =>
     '<option value="' + esc(k) + '">' + esc(m.label) + "</option>").join("");
   $("#pMethod").value = crop.defaultStartMethod;
+  // 防虫ネットは野菜ごとのおすすめを初期値にする
+  $("#pUseNet").checked = !!(crop.net && crop.net.recommended);
+  $("#pNetHint").textContent = crop.net ? (crop.net.recommended ? "おすすめ：" : "") + (crop.net.mesh ? "目合い" + crop.net.mesh + "。" : "") + (crop.net.how || "") : "";
   syncStartLabel();
 }
 
@@ -1212,6 +1422,9 @@ function draftFromForm() {
     memo: $("#pMemo").value.trim(),
     fertDisplay: $("#pFertDisplay").value === "timing" ? "timing" : "amount",
     fertType: $("#pFertType").value === "organic" ? "organic" : "chemical",
+    pesticideFree: $("#pPesticideFree").checked,
+    useNet: $("#pUseNet").checked,
+    mulch: $("#pMulch").checked,
     ...readBed("#pLen", "#pWid")
   };
   if (planned) Object.assign(data, { status: "planned", plannedEvent: ev, plannedDate: date, events: {} });
@@ -1253,7 +1466,8 @@ function goConfirm() {
     ["始め方", methodOf(crop, data).label],
     [(EVENT_LABELS[ev] || ev) + (planned ? "の予定日" : "の日"), date.replace(/-/g, "/")],
     ["畝の大きさ", area ? data.bedLength + "m × " + data.bedWidth + "m（" + fmtArea(area) + "㎡）" : "未入力（1㎡あたりの量で表示）"],
-    ["肥料", (data.fertType === "organic" ? "有機肥料" : "化成肥料") + "・" + (data.fertDisplay === "timing" ? "タイミングだけ表示" : "量まで表示")]
+    ["肥料", (data.fertType === "organic" ? "有機肥料" : "化成肥料") + "・" + (data.fertDisplay === "timing" ? "タイミングだけ表示" : "量まで表示")],
+    ["栽培の方法", careLabel(data)]
   ];
   $("#pSummary").innerHTML = '<table class="summary">'
     + rows.map(([k, v]) => "<tr><th>" + esc(k) + "</th><td>" + esc(v) + "</td></tr>").join("") + "</table>";
@@ -1263,7 +1477,7 @@ function goConfirm() {
   const noPrep = '<div class="prep small muted">' + (planned
     ? "この作物の土づくりのデータはまだありません。"
     : "すでに" + esc(EVENT_LABELS[ev] || ev) + "済みのため、土づくりの案内はありません。") + "</div>";
-  $("#pPreview").innerHTML = (prep || noPrep) + topdressHtml(crop, data);
+  $("#pPreview").innerHTML = (prep || noPrep) + topdressHtml(crop, data) + pestHtml(crop, data, true);
   showAddStep(2);
 }
 
@@ -1292,7 +1506,7 @@ $("#dlgPlanting").addEventListener("close", () => {
   const d = draftFromForm();
   if (!d || !d.date) return;
   const { crop, ev, date, planned, data } = d;
-  lsSet("lastFert", { fertDisplay: data.fertDisplay, fertType: data.fertType });
+  lsSet("lastFert", { fertDisplay: data.fertDisplay, fertType: data.fertType, pesticideFree: data.pesticideFree, mulch: data.mulch });
   const ref = doc(subCol("plantings"));
   // 内容は登録前の確認画面で見ているので、登録後は一覧に戻る（予定表は作付けの詳細でいつでも見られる）
   fire(setDoc(ref, { ...data, createdAt: serverTimestamp() }), crop.name + (planned ? "の予定を登録しました" : "を追加しました"));
@@ -1357,6 +1571,12 @@ function renderDetail(id) {
   const area = bedArea(p);
   $("#dArea").textContent = area ? "面積 " + fmtArea(area) + "㎡" : "未登録";
 
+  $("#dPesticideFree").checked = !!p.pesticideFree;
+  $("#dUseNet").checked = !!p.useNet;
+  $("#dMulch").checked = !!p.mulch;
+  $("#dCare").innerHTML = waterHtml(crop, p) + pestHtml(crop, p, false);
+  const bw = $("#btnWaterDetail");
+  if (bw) bw.addEventListener("click", () => recordWater(p, todayJST()));
   $("#dFertDisplay").value = showAmounts(p) ? "amount" : "timing";
   $("#dFertType").value = fertType(p);
   $("#dPrep").innerHTML = prepHtml(crop, p) + (p.status === "done" ? "" : topdressHtml(crop, p));
@@ -1397,6 +1617,15 @@ function saveBed() {
   fire(updateDoc(subDoc("plantings", p.id), { ...readBed("#dLen", "#dWid"), updatedAt: serverTimestamp() }), "畝の大きさを保存しました");
 }
 $("#dLen").addEventListener("change", saveBed);
+["PesticideFree", "UseNet", "Mulch"].forEach((k) => {
+  const key = k.charAt(0).toLowerCase() + k.slice(1);
+  const labels = { pesticideFree: "無農薬の設定", useNet: "防虫ネットの設定", mulch: "マルチの設定" };
+  $("#d" + k).addEventListener("change", () => {
+    const p = state.plantings.find((x) => x.id === openDetailId);
+    if (p) fire(updateDoc(subDoc("plantings", p.id), { [key]: $("#d" + k).checked, updatedAt: serverTimestamp() }), labels[key] + "を変更しました");
+  });
+});
+
 $("#dFertDisplay").addEventListener("change", () => {
   const p = state.plantings.find((x) => x.id === openDetailId);
   if (p) fire(updateDoc(subDoc("plantings", p.id), { fertDisplay: $("#dFertDisplay").value, updatedAt: serverTimestamp() }), "肥料の表示を変更しました");
@@ -1450,7 +1679,7 @@ function renderFields() {
   box.innerHTML = state.fields.map((f) => {
     const n = state.plantings.filter((p) => p.fieldId === f.id && p.status === "active").length;
     return '<div class="card spread" data-field="' + esc(f.id) + '" style="cursor:pointer"><div><b>' + esc(f.name) + "</b>"
-      + '<div class="small muted">' + Number(f.lat).toFixed(4) + ", " + Number(f.lng).toFixed(4) + "</div></div>"
+      + '<div class="small muted">' + esc(soilOf(f.id).label) + " · " + Number(f.lat).toFixed(4) + ", " + Number(f.lng).toFixed(4) + "</div></div>"
       + '<span class="small muted">栽培中 ' + n + "</span></div>";
   }).join("");
   box.querySelectorAll("[data-field]").forEach((el) => {
@@ -1465,6 +1694,7 @@ function openField(id) {
   $("#fName").value = f ? f.name : "";
   $("#fLat").value = f ? f.lat : "";
   $("#fLng").value = f ? f.lng : "";
+  $("#fSoil").value = (f && f.soil) || "normal";
   $("#geoMsg").textContent = "";
   $("#btnDeleteField").hidden = !f;
   $("#dlgField").showModal();
@@ -1490,6 +1720,7 @@ $("#dlgField").addEventListener("close", () => {
     name: $("#fName").value.trim(),
     lat: Number($("#fLat").value),
     lng: Number($("#fLng").value),
+    soil: $("#fSoil").value,
     updatedAt: serverTimestamp()
   };
   if (!data.name || !isFinite(data.lat) || !isFinite(data.lng)) return;

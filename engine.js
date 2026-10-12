@@ -328,6 +328,113 @@
     });
   }
 
+  // ---------- 水やり（土の水分収支） ----------
+  /**
+   * 降水量と蒸発散量（ET0：気温・湿度・風・日射から算出される基準蒸発散量）から、根のまわりの土の乾き具合を推定する。
+   * @param {object} crop      crop.water: { rootCm, kc: {ini, mid, late}, p }
+   * @param {object} planting  events / startMethod / lastWatered / mulch
+   * @param {object} ctx       { today, days: { 'YYYY-MM-DD': { et0, rain } } }（過去の観測＋今日以降の予報）
+   * @param {object} soil      { awcPerCm, maxRootCm?, etFactor? }
+   * @returns null（データ不足） または { status: 'ok'|'soon'|'need'|'rainSoon'|'watered', deficitMm, tawMm, rawMm, dryPct, amountMm, rainNextMm, lastRain, et3 }
+   */
+  function waterBalance(crop, planting, ctx, soil) {
+    var w = crop.water;
+    if (!w || !soil) return null;
+    var events = planting.events || {};
+    var startKeys = Object.keys(events).filter(function (k) { return k.indexOf('prep') !== 0 && events[k]; });
+    if (startKeys.length === 0) return null;
+    var start = startKeys.map(function (k) { return String(events[k]).slice(0, 10); }).sort()[0];
+    var today = ctx.today;
+    if (start > today) return null;
+    var seedling = !!events.transplant || !!events.plant;
+    var harvestStart = events.harvestStart || null;
+    var mulchF = planting.mulch ? 0.85 : 1;
+    var etF = soil.etFactor || 1;
+
+    function rootCm(d) {
+      var r = daysBetween(start, d) < 20 ? (seedling ? 15 : 10) : w.rootCm;
+      return soil.maxRootCm ? Math.min(r, soil.maxRootCm) : r;
+    }
+    function kc(d) {
+      if (harvestStart && d >= harvestStart) return w.kc.late;
+      if (daysBetween(start, d) < 20) return w.kc.ini;
+      return w.kc.mid;
+    }
+    function effRain(r) { return r > 1 ? (r - 1) * 0.9 : 0; }  // 少しの雨は葉や地表で蒸発する
+
+    var from = start > addDays(today, -30) ? start : addDays(today, -30);
+    var deficit = 0, used = 0, missing = 0, lastRain = null, et3 = 0;
+    for (var d = from; d < today; d = addDays(d, 1)) {
+      var x = ctx.days[d];
+      if (!x || typeof x.et0 !== 'number') { missing++; continue; }
+      used++;
+      var taw = soil.awcPerCm * rootCm(d);
+      var et = x.et0 * kc(d) * mulchF * etF;
+      if (daysBetween(d, today) <= 3) et3 += et;
+      deficit = Math.min(taw, Math.max(0, deficit + et - effRain(x.rain || 0)));
+      if ((x.rain || 0) >= 5) lastRain = d;
+      if (planting.lastWatered && String(planting.lastWatered).slice(0, 10) === d) deficit = 0;
+    }
+    if (used === 0 || missing > used) return null;
+
+    var tawT = soil.awcPerCm * rootCm(today);
+    var rawT = tawT * (w.p || 0.4);
+    var t0 = ctx.days[today] || {};
+    var t1 = ctx.days[addDays(today, 1)] || {};
+    var rainNext = effRain(t0.rain || 0) + effRain(t1.rain || 0);
+    // 今日の夕方までに乾く分も見込む
+    var projected = Math.min(tawT, deficit + (typeof t0.et0 === 'number' ? t0.et0 * kc(today) * mulchF * etF : 0));
+    var status;
+    // まとまった雨が今日・明日に予報されていて、乾き切っていなければ雨を待つ
+    var rainCovers = rainNext >= Math.max(rawT, projected * 0.6) && projected < tawT * 0.85;
+    if (planting.lastWatered && String(planting.lastWatered).slice(0, 10) === today) { status = 'watered'; projected = 0; }
+    else if (projected >= rawT) status = rainCovers ? 'rainSoon' : 'need';
+    else if (projected >= rawT * 0.7) status = 'soon';
+    else status = 'ok';
+    return {
+      status: status,
+      deficitMm: Math.round(projected * 10) / 10,
+      tawMm: Math.round(tawT * 10) / 10,
+      rawMm: Math.round(rawT * 10) / 10,
+      dryPct: Math.round(projected / tawT * 100),
+      amountMm: Math.max(5, Math.round(projected)),
+      rainNextMm: Math.round(rainNext * 10) / 10,
+      lastRain: lastRain,
+      et3: Math.round(et3 * 10) / 10
+    };
+  }
+
+  // ---------- 病害虫の注意 ----------
+  /**
+   * 今の時期に注意したい病害虫。雨続き・乾燥高温など、天気で出やすくなるものを先頭にする。
+   * ctx: { today, observedPrecip: {date: mm}, observedTmax: {date: ℃}, forecast: [{date, precip, tempMax}] }
+   */
+  function pestAlerts(crop, master, ctx) {
+    if (!crop.pests || !master.pests) return [];
+    var month = Number(String(ctx.today).slice(5, 7));
+    var rainy = 0, dry = 0, tmaxSum = 0, tmaxN = 0;
+    for (var i = 1; i <= 5; i++) {
+      var d = addDays(ctx.today, -i);
+      var p = ctx.observedPrecip ? ctx.observedPrecip[d] : undefined;
+      if (typeof p === 'number') { if (p >= 1) rainy++; else dry++; }
+      var t = ctx.observedTmax ? ctx.observedTmax[d] : undefined;
+      if (typeof t === 'number') { tmaxSum += t; tmaxN++; }
+    }
+    var fc2 = (ctx.forecast || []).filter(function (f) { return f.date >= ctx.today && f.date < addDays(ctx.today, 2); })
+      .reduce(function (a, f) { return a + (f.precip || 0); }, 0);
+    var wet = rainy >= 3 || fc2 >= 20;
+    var dryWarm = dry >= 5 && tmaxN > 0 && tmaxSum / tmaxN >= 22;
+    var out = [];
+    crop.pests.forEach(function (id) {
+      var p = master.pests[id];
+      if (!p || p.months.indexOf(month) === -1) return;
+      var boost = (p.weather === 'wet' && wet) ? 'wet' : (p.weather === 'dryWarm' && dryWarm) ? 'dryWarm' : null;
+      out.push({ id: id, name: p.name, kind: p.kind, boost: boost });
+    });
+    out.sort(function (a, b) { return (b.boost ? 1 : 0) - (a.boost ? 1 : 0); });
+    return out;
+  }
+
   // ---------- 適期の判定 ----------
   function firstEvent(crop, methodKey) {
     var m = crop.startMethods[methodKey];
@@ -390,6 +497,8 @@
     evaluatePlanting: evaluatePlanting,
     sowableNow: sowableNow,
     seasonCheck: seasonCheck,
+    waterBalance: waterBalance,
+    pestAlerts: pestAlerts,
     firstEvent: firstEvent,
     currentStage: currentStage,
     evaluatePrep: evaluatePrep,
