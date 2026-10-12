@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.2.0",
+  "schemaVersion": "0.3.0",
   "updatedAt": "2026-10-12",
   "notes": "作物マスタのたたき台。全項目 confidence=draft（一般的な栽培知識に基づく初期値・要検証）。地域別の暦は中間地のみ作成。積算温度ルールは閾値未検証のため enabled=false。",
   "regions": {
@@ -169,8 +169,34 @@
             }
           ]
         },
-        "cold": null,
-        "warm": null
+        "cold": {
+          "sow": [
+            {
+              "from": "08-27",
+              "to": "09-16"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "10-18",
+              "to": "11-16"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "09-24",
+              "to": "10-14"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "11-15",
+              "to": "12-14"
+            }
+          ]
+        }
       },
       "rules": [
         {
@@ -472,6 +498,10 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "offSeason": {
+        "early": "早まき・早植えで苗が大きくなりすぎると、春にとう立ち（ねぎ坊主）しやすくなります。",
+        "late": "遅れると苗が小さいまま冬を迎え、寒さで枯れたり、玉が大きくならなかったりします。"
       }
     },
     {
@@ -563,17 +593,77 @@
             {
               "from": "08-25",
               "to": "09-20"
+            },
+            {
+              "from": "03-15",
+              "to": "04-15"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "09-10",
+              "to": "10-05"
+            },
+            {
+              "from": "04-01",
+              "to": "04-30"
             }
           ],
           "harvest": [
             {
               "from": "10-25",
               "to": "12-31"
+            },
+            {
+              "from": "05-20",
+              "to": "06-30"
             }
           ]
         },
-        "cold": null,
-        "warm": null
+        "cold": {
+          "sow": [
+            {
+              "from": "08-11",
+              "to": "09-06"
+            },
+            {
+              "from": "04-05",
+              "to": "05-06"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "08-27",
+              "to": "09-21"
+            },
+            {
+              "from": "04-22",
+              "to": "05-21"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "09-08",
+              "to": "10-04"
+            },
+            {
+              "from": "03-01",
+              "to": "04-01"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "09-24",
+              "to": "10-19"
+            },
+            {
+              "from": "03-18",
+              "to": "04-16"
+            }
+          ]
+        }
       },
       "rules": [
         {
@@ -949,6 +1039,10 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "offSeason": {
+        "early": "暑い時期にまくと、アブラムシや軟腐病などの病害虫が出やすく、根も太りにくくなります。春まきでは寒い時期に早まきすると、とう立ち（花芽が伸びて根が硬くなる）しやすくなります。",
+        "late": "まくのが遅れると、根が太りきる前に寒くなり小ぶりになります。春まきで遅れると高温で品質が落ちます。春まきは、とう立ちしにくい品種を選びましょう。"
       }
     },
     {
@@ -1040,17 +1134,77 @@
             {
               "from": "07-15",
               "to": "08-20"
+            },
+            {
+              "from": "03-15",
+              "to": "04-30"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "08-05",
+              "to": "09-10"
+            },
+            {
+              "from": "04-10",
+              "to": "05-20"
             }
           ],
           "harvest": [
             {
               "from": "11-01",
               "to": "02-28"
+            },
+            {
+              "from": "06-20",
+              "to": "07-31"
             }
           ]
         },
-        "cold": null,
-        "warm": null
+        "cold": {
+          "sow": [
+            {
+              "from": "07-01",
+              "to": "08-06"
+            },
+            {
+              "from": "04-05",
+              "to": "05-21"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "07-22",
+              "to": "08-27"
+            },
+            {
+              "from": "05-01",
+              "to": "06-10"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "07-29",
+              "to": "09-03"
+            },
+            {
+              "from": "03-01",
+              "to": "04-16"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "08-19",
+              "to": "09-24"
+            },
+            {
+              "from": "03-27",
+              "to": "05-06"
+            }
+          ]
+        }
       },
       "rules": [
         {
@@ -1451,6 +1605,10 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "offSeason": {
+        "early": "時期より早いと、夏まきでは高温と乾燥で発芽がそろいにくく、春まきでは寒さでとう立ちしやすくなります。",
+        "late": "まくのが遅れると、根が太る前に寒さ（または梅雨・高温）に当たり、細く短いニンジンになりやすくなります。"
       }
     },
     {
@@ -1558,17 +1716,77 @@
             {
               "from": "09-01",
               "to": "10-15"
+            },
+            {
+              "from": "03-10",
+              "to": "04-30"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "09-15",
+              "to": "10-31"
+            },
+            {
+              "from": "03-25",
+              "to": "05-15"
             }
           ],
           "harvest": [
             {
               "from": "10-15",
               "to": "12-20"
+            },
+            {
+              "from": "05-01",
+              "to": "06-15"
             }
           ]
         },
-        "cold": null,
-        "warm": null
+        "cold": {
+          "sow": [
+            {
+              "from": "08-18",
+              "to": "10-01"
+            },
+            {
+              "from": "03-31",
+              "to": "05-21"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "09-01",
+              "to": "10-17"
+            },
+            {
+              "from": "04-15",
+              "to": "06-05"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "09-15",
+              "to": "10-29"
+            },
+            {
+              "from": "02-24",
+              "to": "04-16"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "09-29",
+              "to": "11-14"
+            },
+            {
+              "from": "03-11",
+              "to": "05-01"
+            }
+          ]
+        }
       },
       "rules": [
         {
@@ -1873,11 +2091,3303 @@
           "draft-general"
         ],
         "confidence": "draft"
+      },
+      "offSeason": {
+        "early": "暑い時期は虫の被害が多く、根が割れたり硬くなったりしやすくなります。春の早まきは、とう立ちの原因になります。",
+        "late": "遅まきは寒さで生育が止まり、小さいまま冬を迎えます。春の遅まきは高温で根が硬く、スが入りやすくなります。"
+      }
+    },
+    {
+      "id": "spinach",
+      "name": "ほうれん草",
+      "family": "ヒユ科",
+      "difficulty": 2,
+      "rotationYears": 1,
+      "startMethods": {
+        "seed": {
+          "label": "種から（直まき）",
+          "stages": [
+            "sowing",
+            "thinning",
+            "growing",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seed",
+      "stages": [
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "thinning",
+          "name": "間引き期",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 15,
+            "max": 25
+          }
+        },
+        {
+          "id": "growing",
+          "name": "生育",
+          "startEvent": "thin2",
+          "expectedDays": {
+            "min": 10,
+            "max": 25
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 7,
+            "max": 21
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "暑い時期は発芽しにくく、立枯病などの病気が出やすくなります。",
+        "late": "秋の遅まきは寒さで生育が遅れます。春の遅まきは日が長くなるため、とう立ちしやすくなります。"
+      },
+      "rules": [
+        {
+          "id": "spinach-thin-1",
+          "action": "thin",
+          "title": "間引き（1回目）",
+          "message": "本葉1〜2枚の頃です。株間3cmほどに間引きましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 7,
+                "dueBy": 18
+              },
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "thin1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "spinach-thin-2",
+          "action": "thin",
+          "title": "間引き（2回目）＋追肥",
+          "message": "本葉3〜4枚の頃です。株間5〜6cmに間引き、株の間に追肥して軽く土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 20,
+                "dueBy": 30
+              },
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "thin2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "spinach-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "草丈20〜25cmが収穫の目安です。大きいものから順に抜き取りましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 35
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seed": "sow"
+        },
+        "targetPH": "6.5〜7.0",
+        "tips": [
+          "ほうれん草は酸性の土に特に弱く、酸度が合わないと葉が黄色くなって育ちません。苦土石灰は多めに入れます。",
+          "種は一晩水に浸けてからまくと発芽がそろいやすくなります。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 150
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ10cm程度の畝を立て、表面を平らにならします。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "calendar": {
+        "mid": {
+          "sow": [
+            {
+              "from": "09-10",
+              "to": "10-31"
+            },
+            {
+              "from": "03-01",
+              "to": "04-20"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "10-20",
+              "to": "02-28"
+            },
+            {
+              "from": "04-10",
+              "to": "06-10"
+            }
+          ]
+        },
+        "cold": {
+          "sow": [
+            {
+              "from": "08-27",
+              "to": "10-17"
+            },
+            {
+              "from": "03-22",
+              "to": "05-11"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "09-24",
+              "to": "11-14"
+            },
+            {
+              "from": "02-15",
+              "to": "04-06"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "komatsuna",
+      "name": "小松菜",
+      "family": "アブラナ科",
+      "difficulty": 1,
+      "rotationYears": 1,
+      "startMethods": {
+        "seed": {
+          "label": "種から（直まき）",
+          "stages": [
+            "sowing",
+            "thinning",
+            "growing",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seed",
+      "stages": [
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 3,
+            "max": 5
+          }
+        },
+        {
+          "id": "thinning",
+          "name": "間引き期",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 10,
+            "max": 20
+          }
+        },
+        {
+          "id": "growing",
+          "name": "生育",
+          "startEvent": "thin2",
+          "expectedDays": {
+            "min": 10,
+            "max": 20
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 5,
+            "max": 14
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "真冬や早春は寒さで発芽・生育がとても遅くなります（トンネルなどで保温すれば可能です）。",
+        "late": "真夏は虫の被害が非常に多くなります。防虫ネットをかけて育てましょう。"
+      },
+      "rules": [
+        {
+          "id": "komatsuna-thin-1",
+          "action": "thin",
+          "title": "間引き（1回目）",
+          "message": "子葉が開いた頃です。混み合ったところを間引きましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 5,
+                "dueBy": 12
+              },
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "thin1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "komatsuna-thin-2",
+          "action": "thin",
+          "title": "間引き（2回目）＋追肥",
+          "message": "本葉3〜4枚の頃です。株間5cmほどに間引き、追肥して軽く土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 14,
+                "dueBy": 22
+              },
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "thin2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 20
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 30
+              }
+            ]
+          }
+        },
+        {
+          "id": "komatsuna-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "草丈20〜25cmが収穫の目安です。取り遅れると葉が硬くなります。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 30
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seed": "sow"
+        },
+        "targetPH": "6.0〜6.5",
+        "tips": [
+          "生育が早く育てやすい野菜です。虫が付きやすいので、種まき直後から防虫ネットをかけると安心です。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ10cm程度の畝を立て、表面を平らにならします。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "calendar": {
+        "mid": {
+          "sow": [
+            {
+              "from": "03-15",
+              "to": "05-31"
+            },
+            {
+              "from": "09-01",
+              "to": "10-31"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "04-20",
+              "to": "07-10"
+            },
+            {
+              "from": "10-01",
+              "to": "01-31"
+            }
+          ]
+        },
+        "cold": {
+          "sow": [
+            {
+              "from": "04-05",
+              "to": "06-21"
+            },
+            {
+              "from": "08-18",
+              "to": "10-17"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "03-01",
+              "to": "05-17"
+            },
+            {
+              "from": "09-15",
+              "to": "11-14"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cabbage",
+      "name": "キャベツ",
+      "family": "アブラナ科",
+      "difficulty": 3,
+      "rotationYears": 2,
+      "startMethods": {
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        },
+        "seed": {
+          "label": "種から（育苗）",
+          "stages": [
+            "sowing",
+            "nursery",
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seedling",
+      "stages": [
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 3,
+            "max": 7
+          }
+        },
+        {
+          "id": "nursery",
+          "name": "育苗",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 25,
+            "max": 35
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "生育",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 50,
+            "max": 90
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 7,
+            "max": 30
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "暑い時期に植えると病害虫（アオムシ・ヨトウムシなど）の被害が多くなります。春植えで寒さに当たると、とう立ちしやすくなります。",
+        "late": "植え付けが遅れると、結球する前に寒くなって玉が締まりません。春植えで遅れると、高温で玉割れや病気が出やすくなります。"
+      },
+      "rules": [
+        {
+          "id": "cabbage-transplant-window",
+          "action": "transplant",
+          "title": "定植の目安",
+          "message": "本葉5〜6枚になったら定植しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "nursery"
+                ]
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 25
+              }
+            ]
+          },
+          "resolvedBy": "transplant",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "cabbage-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "cabbage-fert-1",
+          "action": "fertilize",
+          "title": "追肥と土寄せ（1回目）",
+          "message": "定植から約3週間。株の周りに追肥して、株元に土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 20,
+                "dueBy": 30
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "cabbage-fert-2",
+          "action": "fertilize",
+          "title": "追肥と土寄せ（2回目）",
+          "message": "株がしっかり育つ時期の追肥です。株の周りに追肥して土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 40,
+                "dueBy": 50
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "cabbage-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "玉を手で押して固くしまっていたら収穫しましょう。取り遅れると玉が割れます。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 80
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seedling": "transplant",
+          "seed": "transplant"
+        },
+        "targetPH": "6.0〜6.5",
+        "tips": [
+          "肥料を多く必要とする野菜です。元肥をしっかり入れます。",
+          "植え付け直後から防虫ネットをかけると、アオムシなどの被害を防げます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 150
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 300
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 150
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ10cm程度の畝を立てます。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft",
+        "estimateFromSow": 30
+      },
+      "calendar": {
+        "mid": {
+          "sow": [
+            {
+              "from": "07-15",
+              "to": "08-10"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "08-20",
+              "to": "09-20"
+            },
+            {
+              "from": "03-01",
+              "to": "04-10"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "11-01",
+              "to": "01-31"
+            },
+            {
+              "from": "05-20",
+              "to": "06-30"
+            }
+          ]
+        },
+        "cold": {
+          "sow": [
+            {
+              "from": "07-01",
+              "to": "07-27"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "08-06",
+              "to": "09-06"
+            },
+            {
+              "from": "03-22",
+              "to": "05-01"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "07-29",
+              "to": "08-24"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "09-03",
+              "to": "10-04"
+            },
+            {
+              "from": "02-15",
+              "to": "03-27"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "broccoli",
+      "name": "ブロッコリー",
+      "family": "アブラナ科",
+      "difficulty": 3,
+      "rotationYears": 2,
+      "startMethods": {
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        },
+        "seed": {
+          "label": "種から（育苗）",
+          "stages": [
+            "sowing",
+            "nursery",
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seedling",
+      "stages": [
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 3,
+            "max": 7
+          }
+        },
+        {
+          "id": "nursery",
+          "name": "育苗",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 25,
+            "max": 35
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "生育",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 50,
+            "max": 90
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 7,
+            "max": 30
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "暑い時期に植えると病害虫が多く、苗が弱りやすくなります。",
+        "late": "植え付けが遅れると、花蕾（食べる部分）が大きくなる前に寒くなり小さくなります。"
+      },
+      "rules": [
+        {
+          "id": "broccoli-transplant-window",
+          "action": "transplant",
+          "title": "定植の目安",
+          "message": "本葉5〜6枚になったら定植しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "nursery"
+                ]
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 25
+              }
+            ]
+          },
+          "resolvedBy": "transplant",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "broccoli-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "broccoli-fert-1",
+          "action": "fertilize",
+          "title": "追肥と土寄せ（1回目）",
+          "message": "定植から約3週間。株の周りに追肥して、株元に土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 20,
+                "dueBy": 30
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "broccoli-fert-2",
+          "action": "fertilize",
+          "title": "追肥と土寄せ（2回目）",
+          "message": "株がしっかり育つ時期の追肥です。株の周りに追肥して土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 40,
+                "dueBy": 50
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "broccoli-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "頂花蕾の直径が12〜15cmになったら、茎を10cmほど付けて切り取りましょう。その後もわき芽の花蕾が収穫できます。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 60
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seedling": "transplant",
+          "seed": "transplant"
+        },
+        "targetPH": "6.0〜6.5",
+        "tips": [
+          "肥料を多く必要とする野菜です。元肥をしっかり入れます。",
+          "植え付け直後から防虫ネットをかけると、アオムシなどの被害を防げます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 150
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 300
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 150
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ10cm程度の畝を立てます。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft",
+        "estimateFromSow": 30
+      },
+      "calendar": {
+        "mid": {
+          "sow": [
+            {
+              "from": "07-10",
+              "to": "08-10"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "08-10",
+              "to": "09-15"
+            },
+            {
+              "from": "03-01",
+              "to": "04-10"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "10-20",
+              "to": "01-31"
+            },
+            {
+              "from": "05-10",
+              "to": "06-20"
+            }
+          ]
+        },
+        "cold": {
+          "sow": [
+            {
+              "from": "06-26",
+              "to": "07-27"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "07-27",
+              "to": "09-01"
+            },
+            {
+              "from": "03-22",
+              "to": "05-01"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "07-24",
+              "to": "08-24"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "08-24",
+              "to": "09-29"
+            },
+            {
+              "from": "02-15",
+              "to": "03-27"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "potato",
+      "name": "じゃがいも",
+      "family": "ナス科",
+      "difficulty": 2,
+      "rotationYears": 3,
+      "startMethods": {
+        "seedPotato": {
+          "label": "種いもから",
+          "stages": [
+            "planted",
+            "sprouted",
+            "growing",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seedPotato",
+      "stages": [
+        {
+          "id": "planted",
+          "name": "植え付け〜芽出し",
+          "startEvent": "plant",
+          "expectedDays": {
+            "min": 14,
+            "max": 30
+          }
+        },
+        {
+          "id": "sprouted",
+          "name": "芽の生育",
+          "startEvent": "sprout",
+          "expectedDays": {
+            "min": 14,
+            "max": 25
+          }
+        },
+        {
+          "id": "growing",
+          "name": "いもの肥大",
+          "startEvent": "budThin",
+          "expectedDays": {
+            "min": 40,
+            "max": 60
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 7,
+            "max": 21
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "早すぎると、芽が出たところで遅霜に当たって傷みます。秋植えで早すぎると、高温で種いもが腐りやすくなります。",
+        "late": "遅れると、いもが太る時期が梅雨や高温と重なり、腐りやすく収量も落ちます。秋植えで遅れると、寒くなる前にいもが育ちません。"
+      },
+      "rules": [
+        {
+          "id": "potato-frost",
+          "action": "protect",
+          "title": "遅霜に注意",
+          "message": "予報の最低気温が低い日があります。出た芽が霜に当たらないよう、土をかぶせるか不織布をかけましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "planted",
+                  "sprouted"
+                ]
+              },
+              {
+                "type": "forecast",
+                "metric": "tempMin",
+                "days": 3,
+                "op": "lte",
+                "value": 1
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "potato-budthin",
+          "action": "care",
+          "title": "芽かき",
+          "message": "芽が10〜15cmに伸びたら、勢いのよい芽を2〜3本残して、ほかは株元から引き抜きましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "sprout",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "plant",
+                "gte": 30,
+                "dueBy": 45
+              },
+              {
+                "type": "eventDone",
+                "event": "budThin",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "budThin",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "potato-fert-1",
+          "action": "fertilize",
+          "title": "追肥と土寄せ（1回目）",
+          "message": "芽かきの後に、株の周りに追肥して株元へ土寄せします。いもが日に当たって緑になるのを防ぎます。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "budThin",
+                "done": true
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "potato-fert-2",
+          "action": "fertilize",
+          "title": "追肥と土寄せ（2回目）",
+          "message": "つぼみが付く頃です。もう一度追肥して、しっかり土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "plant",
+                "gte": 55,
+                "dueBy": 70
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "potato-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "葉や茎が黄色く枯れ始めたら収穫の目安です。晴れが2〜3日続いて土が乾いた日に掘り上げましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "plant",
+                "gte": 90
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seedPotato": "plant"
+        },
+        "targetPH": "5.0〜6.0",
+        "tips": [
+          "じゃがいもは酸性の土を好みます。石灰を入れると、いもの表面がかさぶたのようになる「そうか病」が出やすくなるため、基本的に入れません。",
+          "種いもは大きいものは切り分け、切り口を数日乾かしてから植えます。",
+          "前の年にナス科（トマト・ナス・ピーマンなど）を育てた場所は避けます。"
+        ],
+        "steps": [
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "植え溝を深さ10cmほど掘って準備します。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "calendar": {
+        "mid": {
+          "plant": [
+            {
+              "from": "02-20",
+              "to": "03-25"
+            },
+            {
+              "from": "08-25",
+              "to": "09-10"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "05-25",
+              "to": "07-10"
+            },
+            {
+              "from": "11-15",
+              "to": "12-15"
+            }
+          ]
+        },
+        "cold": {
+          "plant": [
+            {
+              "from": "03-13",
+              "to": "04-15"
+            },
+            {
+              "from": "08-11",
+              "to": "08-27"
+            }
+          ]
+        },
+        "warm": {
+          "plant": [
+            {
+              "from": "02-06",
+              "to": "03-11"
+            },
+            {
+              "from": "09-08",
+              "to": "09-24"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tomato",
+      "name": "トマト",
+      "family": "ナス科",
+      "difficulty": 4,
+      "rotationYears": 3,
+      "startMethods": {
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        },
+        "seed": {
+          "label": "種から（育苗）",
+          "stages": [
+            "sowing",
+            "nursery",
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seedling",
+      "stages": [
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "nursery",
+          "name": "育苗",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 45,
+            "max": 60
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "生育",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 30,
+            "max": 60
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 30,
+            "max": 100
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "早植えすると、低温や遅霜で苗が傷み、生育が止まります。地温が十分上がってから植えましょう。",
+        "late": "植え付けが遅れると、実がなる時期が真夏の高温と重なり、実付きが悪くなったり割れたりしやすくなります。"
+      },
+      "rules": [
+        {
+          "id": "tomato-transplant-window",
+          "action": "transplant",
+          "title": "定植の目安",
+          "message": "本葉7〜8枚で、一番花のつぼみが見えてきたら定植しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "nursery"
+                ]
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 50
+              }
+            ]
+          },
+          "resolvedBy": "transplant",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "tomato-frost",
+          "action": "protect",
+          "title": "低温に注意",
+          "message": "予報の最低気温が低い日があります。植えたばかりの苗は寒さに弱いので、あんどん（袋で囲う）や不織布で保温しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "forecast",
+                "metric": "tempMin",
+                "days": 3,
+                "op": "lte",
+                "value": 3
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "tomato-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "tomato-stake",
+          "action": "care",
+          "title": "支柱を立てる",
+          "message": "苗が倒れないよう支柱を立て、茎をひもで8の字に結んで固定しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 0,
+                "dueBy": 7
+              },
+              {
+                "type": "eventDone",
+                "event": "stake",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "stake",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "tomato-fert-1",
+          "action": "fertilize",
+          "title": "追肥（1回目）",
+          "message": "一段目の実がピンポン玉くらいになった頃の追肥です。株から少し離して肥料をまきましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 20,
+                "dueBy": 35
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "tomato-fert-2",
+          "action": "fertilize",
+          "title": "追肥（2回目）",
+          "message": "続けて実をならせるための追肥です。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 40,
+                "dueBy": 55
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "tomato-fert-3",
+          "action": "fertilize",
+          "title": "追肥（3回目）",
+          "message": "3回目の追肥です。葉の色が薄ければ肥料不足のサインです。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 60,
+                "dueBy": 75
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize3",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize3",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "tomato-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "実が全体に赤く色づいたら、ヘタの上で切り取りましょう。わき芽はこまめに摘み取ります。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 50
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seedling": "transplant",
+          "seed": "transplant"
+        },
+        "targetPH": "6.0〜6.5",
+        "tips": [
+          "肥料が多すぎると葉ばかり茂って実が付きにくくなるので、元肥は控えめにします。",
+          "前の年にナス科を育てた場所は避けます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ15〜20cmの畝を立てます。黒マルチを張ると地温が上がり、根付きがよくなります。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft",
+        "estimateFromSow": 60
+      },
+      "calendar": {
+        "mid": {
+          "sow": [
+            {
+              "from": "02-20",
+              "to": "03-20"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "04-25",
+              "to": "05-25"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "07-01",
+              "to": "09-30"
+            }
+          ]
+        },
+        "cold": {
+          "sow": [
+            {
+              "from": "03-13",
+              "to": "04-10"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "05-16",
+              "to": "06-15"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "02-06",
+              "to": "03-06"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "04-11",
+              "to": "05-11"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "eggplant",
+      "name": "ナス",
+      "family": "ナス科",
+      "difficulty": 3,
+      "rotationYears": 3,
+      "startMethods": {
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        },
+        "seed": {
+          "label": "種から（育苗）",
+          "stages": [
+            "sowing",
+            "nursery",
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seedling",
+      "stages": [
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "nursery",
+          "name": "育苗",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 55,
+            "max": 70
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "生育",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 30,
+            "max": 60
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 30,
+            "max": 100
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "ナスは寒さに特に弱く、早植えすると生育が止まって弱ってしまいます。",
+        "late": "植え付けが遅れると、収穫できる期間が短くなります。"
+      },
+      "rules": [
+        {
+          "id": "eggplant-transplant-window",
+          "action": "transplant",
+          "title": "定植の目安",
+          "message": "本葉7〜8枚で、一番花のつぼみが見えてきたら定植しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "nursery"
+                ]
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 60
+              }
+            ]
+          },
+          "resolvedBy": "transplant",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "eggplant-frost",
+          "action": "protect",
+          "title": "低温に注意",
+          "message": "予報の最低気温が低い日があります。植えたばかりの苗は寒さに弱いので、あんどん（袋で囲う）や不織布で保温しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "forecast",
+                "metric": "tempMin",
+                "days": 3,
+                "op": "lte",
+                "value": 5
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "eggplant-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "eggplant-stake",
+          "action": "care",
+          "title": "支柱を立てる",
+          "message": "苗が倒れないよう支柱を立て、茎をひもで8の字に結んで固定しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 0,
+                "dueBy": 7
+              },
+              {
+                "type": "eventDone",
+                "event": "stake",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "stake",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "eggplant-fert-1",
+          "action": "fertilize",
+          "title": "追肥（1回目）",
+          "message": "定植から約2週間。株の周りに追肥しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 14,
+                "dueBy": 25
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "eggplant-fert-2",
+          "action": "fertilize",
+          "title": "追肥（2回目）",
+          "message": "収穫が始まる頃の追肥です。以降も2週間おきに追肥します。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 28,
+                "dueBy": 40
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "eggplant-fert-3",
+          "action": "fertilize",
+          "title": "追肥（3回目）",
+          "message": "続けて実をならせるための追肥です。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 42,
+                "dueBy": 55
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize3",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize3",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "eggplant-fert-4",
+          "action": "fertilize",
+          "title": "追肥（4回目）",
+          "message": "肥料切れすると実が硬くなります。2週間おきの追肥を続けましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize3",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 56,
+                "dueBy": 70
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize4",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize4",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "eggplant-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "実にツヤがあり、手のひらくらいの大きさになったら収穫しましょう。取り遅れると種が多く硬くなります。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 35
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seedling": "transplant",
+          "seed": "transplant"
+        },
+        "targetPH": "6.0〜6.8",
+        "tips": [
+          "肥料と水を多く必要とする野菜です。元肥をしっかり入れます。",
+          "前の年にナス科を育てた場所は避けます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 150
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 300
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 150
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ15〜20cmの畝を立てます。黒マルチを張ると地温が上がり、根付きがよくなります。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft",
+        "estimateFromSow": 70
+      },
+      "calendar": {
+        "mid": {
+          "sow": [
+            {
+              "from": "02-20",
+              "to": "03-20"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "05-01",
+              "to": "05-31"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "06-20",
+              "to": "10-31"
+            }
+          ]
+        },
+        "cold": {
+          "sow": [
+            {
+              "from": "03-13",
+              "to": "04-10"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "05-22",
+              "to": "06-21"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "02-06",
+              "to": "03-06"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "04-17",
+              "to": "05-17"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cucumber",
+      "name": "キュウリ",
+      "family": "ウリ科",
+      "difficulty": 2,
+      "rotationYears": 2,
+      "startMethods": {
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ]
+        },
+        "seed": {
+          "label": "種から（直まき）",
+          "stages": [
+            "sowing",
+            "growing",
+            "harvest"
+          ]
+        }
+      },
+      "defaultStartMethod": "seedling",
+      "stages": [
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "growing",
+          "name": "生育",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 30,
+            "max": 45
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "生育",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 30,
+            "max": 60
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 30,
+            "max": 100
+          }
+        }
+      ],
+      "offSeason": {
+        "early": "キュウリは低温に弱く、早植えすると根付きが悪くなります。",
+        "late": "遅まき（7月中旬以降）は、ウリハムシやうどんこ病が増え、収穫期間も短くなります。"
+      },
+      "rules": [
+        {
+          "id": "cucumber-frost",
+          "action": "protect",
+          "title": "低温に注意",
+          "message": "予報の最低気温が低い日があります。植えたばかりの苗は寒さに弱いので、あんどん（袋で囲う）や不織布で保温しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "forecast",
+                "metric": "tempMin",
+                "days": 3,
+                "op": "lte",
+                "value": 5
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "cucumber-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "cucumber-stake",
+          "action": "care",
+          "title": "支柱を立てる",
+          "message": "苗が倒れないよう支柱を立て、茎をひもで8の字に結んで固定しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted",
+                  "established",
+                  "growing"
+                ]
+              },
+              {
+                "type": "eventDone",
+                "event": "stake",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "stake",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "cucumber-fert-1",
+          "action": "fertilize",
+          "title": "追肥（1回目）",
+          "message": "定植から約2週間。株の周りに追肥しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 14,
+                "dueBy": 25
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "cucumber-fert-2",
+          "action": "fertilize",
+          "title": "追肥（2回目）",
+          "message": "収穫が始まる頃の追肥です。以降も2週間おきに追肥します。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 28,
+                "dueBy": 40
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "cucumber-fert-3",
+          "action": "fertilize",
+          "title": "追肥（3回目）",
+          "message": "肥料切れすると実が曲がりやすくなります。2週間おきの追肥を続けましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 42,
+                "dueBy": 55
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize3",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize3",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "cucumber-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "長さ18〜20cmが収穫の目安です。取り遅れると株が弱るので、小さめでもこまめに収穫しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 30
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "cucumber-seed-fert-1",
+          "action": "fertilize",
+          "title": "追肥（1回目）",
+          "message": "本葉5〜6枚の頃です。株の周りに追肥しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 30,
+                "dueBy": 40
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "cucumber-seed-fert-2",
+          "action": "fertilize",
+          "title": "追肥（2回目）",
+          "message": "収穫が始まる頃の追肥です。以降も2週間おきに追肥します。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 44,
+                "dueBy": 55
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
+        },
+        {
+          "id": "cucumber-seed-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "長さ18〜20cmが収穫の目安です。小さめでもこまめに収穫しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 50
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        }
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seedling": "transplant",
+          "seed": "sow"
+        },
+        "targetPH": "6.0〜7.0",
+        "tips": [
+          "根が浅く乾燥に弱いので、完熟堆肥を多めに入れて水持ちのよい土にします。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ15〜20cmの畝を立てます。黒マルチを張ると地温が上がり、根付きがよくなります。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      },
+      "calendar": {
+        "mid": {
+          "sow": [
+            {
+              "from": "05-01",
+              "to": "07-10"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "04-25",
+              "to": "06-15"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "06-01",
+              "to": "09-30"
+            }
+          ]
+        },
+        "cold": {
+          "sow": [
+            {
+              "from": "05-22",
+              "to": "07-31"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "05-16",
+              "to": "07-06"
+            }
+          ]
+        },
+        "warm": {
+          "sow": [
+            {
+              "from": "04-17",
+              "to": "06-26"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "04-11",
+              "to": "06-01"
+            }
+          ]
+        }
       }
     }
   ],
   "fertilizerNotes": {
     "chemical": "化成肥料（8-8-8）は窒素・リン酸・カリが各8%の一般的な肥料です。成分の違う肥料を使う場合は、窒素の量が同じになるように加減してください。",
     "organic": "有機肥料は製品によって成分が大きく違います。袋の表示を確認して加減してください。"
-  }
+  },
+  "regionNote": "寒地・暖地の暦は中間地からの補正値（秋まき系：寒地−14日・暖地＋14日、春夏系：寒地＋21日・暖地−14日）。収穫期は中間地のみ。"
 }

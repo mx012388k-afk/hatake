@@ -328,25 +328,69 @@
     });
   }
 
-  /** 今の時期に播種適期の作物（植え付け提案・挑戦提案の土台） */
+  // ---------- 適期の判定 ----------
+  function firstEvent(crop, methodKey) {
+    var m = crop.startMethods[methodKey];
+    if (!m) return null;
+    var st = crop.stages.filter(function (s) { return s.id === m.stages[0]; })[0];
+    return st ? st.startEvent : null;
+  }
+
+  /** 'MM-DD' を年内の通し日（0〜364）に */
+  function dayOfYear(md) {
+    var t = Date.UTC(2001, Number(md.slice(0, 2)) - 1, Number(md.slice(3, 5)));
+    return Math.round((t - Date.UTC(2001, 0, 1)) / 86400000);
+  }
+
+  /**
+   * 開始日（種まき・定植・植え付け）が地域の適期に入っているか。
+   * 戻り値: null（暦データなし） / { ok, event, windows, nearest, position: 'early'|'late', days }
+   */
+  function seasonCheck(crop, methodKey, region, dateStr) {
+    var ev = firstEvent(crop, methodKey);
+    var cal = crop.calendar && crop.calendar[region];
+    var wins = ev && cal && cal[ev];
+    if (!wins || wins.length === 0) return null;
+    var md = String(dateStr).slice(5, 10);
+    var inWin = wins.some(function (w) { return inCalendarRange(dateStr, w.from, w.to); });
+    if (inWin) return { ok: true, event: ev, windows: wins };
+    var d = dayOfYear(md);
+    var best = null;
+    wins.forEach(function (w) {
+      var untilStart = (dayOfYear(w.from) - d + 365) % 365;   // 適期まであと何日（早すぎ）
+      var sinceEnd = (d - dayOfYear(w.to) + 365) % 365;       // 適期を何日過ぎた（遅すぎ）
+      if (!best || untilStart < best.days) best = { position: 'early', days: untilStart, nearest: w };
+      if (sinceEnd < best.days) best = { position: 'late', days: sinceEnd, nearest: w };
+    });
+    return { ok: false, event: ev, windows: wins, nearest: best.nearest, position: best.position, days: best.days };
+  }
+
+  /** 今が始めどき（種まき・植え付け）の作物。開始方法ごとに判定する（植え付け提案・挑戦提案の土台） */
   function sowableNow(master, region, today, experiencedCropIds) {
     var exp = experiencedCropIds || [];
-    return master.crops
-      .filter(function (c) {
-        var cal = c.calendar && c.calendar[region];
-        if (!cal || !cal.sow) return false;
-        return cal.sow.some(function (r) { return inCalendarRange(today, r.from, r.to); });
-      })
-      .map(function (c) {
-        return { cropId: c.id, name: c.name, difficulty: c.difficulty, isNew: exp.indexOf(c.id) === -1 };
-      })
-      .sort(function (a, b) { return a.difficulty - b.difficulty; });
+    var out = [];
+    master.crops.forEach(function (c) {
+      var methods = Object.keys(c.startMethods).filter(function (k) {
+        var r = seasonCheck(c, k, region, today);
+        return r && r.ok;
+      });
+      if (methods.length === 0) return;
+      // 既定の開始方法を優先
+      methods.sort(function (a, b) { return (a === c.defaultStartMethod ? -1 : 0) - (b === c.defaultStartMethod ? -1 : 0); });
+      out.push({
+        cropId: c.id, name: c.name, difficulty: c.difficulty, isNew: exp.indexOf(c.id) === -1,
+        methods: methods.map(function (k) { return { key: k, label: c.startMethods[k].label, event: firstEvent(c, k) }; })
+      });
+    });
+    return out.sort(function (a, b) { return a.difficulty - b.difficulty; });
   }
 
   return {
     evaluateAll: evaluateAll,
     evaluatePlanting: evaluatePlanting,
     sowableNow: sowableNow,
+    seasonCheck: seasonCheck,
+    firstEvent: firstEvent,
     currentStage: currentStage,
     evaluatePrep: evaluatePrep,
     prepSchedule: prepSchedule,

@@ -1,4 +1,4 @@
-// 畑ノート 試作版 v0.2（土づくり・肥料の量に対応）
+// 畑ノート 試作版 v0.3（実績・時期外れの注意・12品目）
 // 素のJS（ES Modules）＋ Firebase（Auth / Firestore オフライン永続化）
 // 日付はすべて 'YYYY-MM-DD' 文字列（JST）で扱う。
 
@@ -22,6 +22,10 @@ const EVENT_LABELS = {
   prepBase: "堆肥・元肥を入れた",
   prepRidge: "畝を立てた",
   sow: "種まき",
+  plant: "植え付け",
+  sprout: "芽が出た",
+  budThin: "芽かき",
+  stake: "支柱立て",
   germinate: "発芽",
   transplant: "定植",
   rooted: "活着（根付いた）",
@@ -30,13 +34,16 @@ const EVENT_LABELS = {
   thin3: "間引き 3回目",
   fertilize1: "追肥 1回目",
   fertilize2: "追肥 2回目",
+  fertilize3: "追肥 3回目",
+  fertilize4: "追肥 4回目",
   bulbStart: "玉の肥大が始まった",
   harvestStart: "収穫開始",
   harvestEnd: "収穫終了"
 };
 const EVENT_ORDER = [
-  "prepLime", "prepBase", "prepRidge", "sow", "germinate", "transplant", "rooted", "thin1", "thin2", "thin3",
-  "fertilize1", "fertilize2", "bulbStart", "harvestStart", "harvestEnd"
+  "prepLime", "prepBase", "prepRidge", "sow", "plant", "germinate", "sprout", "transplant", "rooted", "stake",
+  "thin1", "thin2", "thin3", "budThin", "fertilize1", "fertilize2", "fertilize3", "fertilize4",
+  "bulbStart", "harvestStart", "harvestEnd"
 ];
 const WX_TTL_MS = 3 * 60 * 60 * 1000; // 天気キャッシュの有効時間（3時間）
 
@@ -354,6 +361,7 @@ function subscribe() {
   state.unsubs.push(onSnapshot(subCol("plantings"), (qs) => {
     state.plantings = qs.docs.map((d) => ({ id: d.id, ...d.data() }));
     renderPlantings();
+    renderRecords();
     renderToday();
     if (pendingOpenId && state.plantings.some((p) => p.id === pendingOpenId)) {
       const id = pendingOpenId;
@@ -540,17 +548,206 @@ function renderSowable(today) {
   const list = Engine.sowableNow(state.master, region, today, experienced);
   const box = $("#todaySow");
   if (list.length === 0) {
-    box.innerHTML = '<div class="card empty small">登録済みの作物の中で、今が種まき適期のものはありません。</div>';
+    box.innerHTML = '<div class="card empty small">今が種まき・植え付けの適期の作物はありません。</div>';
     return;
   }
   box.innerHTML = list.map((c) =>
     '<div class="card spread"><div><b>' + esc(c.name) + "</b>"
     + (c.isNew ? '<span class="badge new">未挑戦</span>' : "")
-    + '<div class="small muted">難易度 ' + "★".repeat(c.difficulty) + "☆".repeat(Math.max(0, 5 - c.difficulty)) + "</div></div>"
-    + '<button data-crop="' + esc(c.cropId) + '">植える</button></div>'
+    + '<div class="small muted">' + esc(c.methods.map((m) => m.label).join("・")) + " · 難易度 "
+    + "★".repeat(c.difficulty) + "☆".repeat(Math.max(0, 5 - c.difficulty)) + "</div></div>"
+    + '<button data-crop="' + esc(c.cropId) + '" data-method="' + esc(c.methods[0].key) + '">始める</button></div>'
   ).join("");
   box.querySelectorAll("button[data-crop]").forEach((b) => {
-    b.addEventListener("click", () => openAddPlanting(b.dataset.crop));
+    b.addEventListener("click", () => openAddPlanting(b.dataset.crop, b.dataset.method));
+  });
+}
+
+// ---------- 時期外れの注意 ----------
+const REGION_LABELS = { cold: "寒地・寒冷地", mid: "中間地", warm: "暖地" };
+
+function userRegion() {
+  return (state.userDoc && state.userDoc.region) || "mid";
+}
+
+function fmtWindows(wins) {
+  return wins.map((w) => md("2000-" + w.from) + "〜" + md("2000-" + w.to)).join("、");
+}
+
+/** 開始日が適期外なら注意を返す（適期内・暦データなしなら空） */
+function seasonNoteHtml(crop, methodKey, dateStr, opts) {
+  if (!crop || !dateStr) return "";
+  const region = userRegion();
+  const r = Engine.seasonCheck(crop, methodKey, region, dateStr);
+  if (!r) return "";
+  const evLabel = EVENT_LABELS[r.event] || r.event;
+  if (r.ok) {
+    return opts && opts.showOk
+      ? '<div class="season ok">' + esc(REGION_LABELS[region]) + "の" + esc(evLabel) + "の適期（" + esc(fmtWindows(r.windows)) + "）に入っています。</div>"
+      : "";
+  }
+  const when = r.position === "early" ? "適期より約" + r.days + "日早い時期です" : "適期を約" + r.days + "日過ぎています";
+  const risk = crop.offSeason ? crop.offSeason[r.position] : "";
+  return '<div class="season"><b>' + esc(crop.name) + "の" + esc(evLabel) + "の時期ではありません（" + esc(when) + "）</b>"
+    + esc(REGION_LABELS[region]) + "の" + esc(evLabel) + "の適期：" + esc(fmtWindows(r.windows)) + "<br>"
+    + (risk ? esc(risk) + "<br>" : "")
+    + "このまま登録することもできます。育てる場合は、保温・遮光・防虫などの対策を検討してください。"
+    + '<div class="small" style="margin-top:4px;opacity:.85">地域区分は「畑・設定」で変更できます（目安・検証中）。</div></div>';
+}
+
+function syncSeasonNote() {
+  const crop = cropById($("#pCrop").value);
+  $("#pSeasonNote").innerHTML = crop ? seasonNoteHtml(crop, $("#pMethod").value, $("#pStartDate").value) : "";
+}
+
+// ---------- 栽培の結果 ----------
+const RATINGS = {
+  great: { label: "豊作", cls: "great" },
+  normal: { label: "普通", cls: "normal" },
+  poor: { label: "不作", cls: "poor" },
+  failed: { label: "失敗", cls: "failed" }
+};
+const CAUSES = [
+  ["weather", "天候（長雨・猛暑・寒さ）"], ["disease", "病気"], ["pest", "害虫・鳥獣"],
+  ["germination", "発芽・根付きが悪い"], ["timing", "時期が合わなかった"], ["fertilizer", "肥料（多すぎ・少なすぎ）"],
+  ["water", "水やり（乾燥・過湿）"], ["soil", "土・水はけ"], ["care", "手入れが遅れた"], ["other", "その他"]
+];
+const SUCCESS = ["great", "normal"];
+
+function ratingBadge(rating) {
+  const r = RATINGS[rating];
+  return r ? '<span class="rt ' + r.cls + '">' + r.label + "</span>" : "";
+}
+
+function fmtYield(res) {
+  if (!res || !(res.yieldValue > 0)) return "";
+  return res.yieldUnit === "count" ? res.yieldValue + "本・個" : res.yieldValue + "kg";
+}
+
+let finishTargetId = null;
+
+function openFinish(id) {
+  const p = state.plantings.find((x) => x.id === id);
+  if (!p) return;
+  finishTargetId = id;
+  const crop = cropById(p.cropId);
+  const res = p.result || {};
+  $("#fTitle").textContent = (p.status === "done" ? "結果を編集：" : "栽培を終了：") + (crop ? crop.name : "");
+  $("#fSub").textContent = (p.memo ? p.memo + " · " : "") + (startDateOf(p) ? md(startDateOf(p)) + "〜" : "");
+  document.querySelectorAll('#fRatings input[name="rating"]').forEach((r) => { r.checked = r.value === res.rating; });
+  $("#fYield").value = res.yieldValue > 0 ? res.yieldValue : "";
+  $("#fYieldUnit").value = res.yieldUnit === "count" ? "count" : "kg";
+  $("#fCauses").innerHTML = CAUSES.map(([k, l]) =>
+    '<label><input type="checkbox" value="' + k + '"' + ((res.causes || []).includes(k) ? " checked" : "") + "> " + esc(l) + "</label>").join("");
+  $("#fNote").value = res.note || "";
+  $("#btnFinishSave").textContent = p.status === "done" ? "保存する" : "終了して記録する";
+  syncCauseBox();
+  $("#dlgFinish").showModal();
+}
+
+function syncCauseBox() {
+  const sel = document.querySelector('#fRatings input[name="rating"]:checked');
+  // 豊作・普通でも振り返りに使えるよう、原因欄は不作・失敗のときに目立たせるだけで常に入力可
+  $("#fCauseBox").style.opacity = sel && SUCCESS.includes(sel.value) ? ".55" : "1";
+}
+
+$("#fRatings").addEventListener("change", syncCauseBox);
+$("#btnFinishCancel").addEventListener("click", () => $("#dlgFinish").close("cancel"));
+
+$("#dlgFinish").addEventListener("close", () => {
+  if ($("#dlgFinish").returnValue !== "ok") return;
+  const p = state.plantings.find((x) => x.id === finishTargetId);
+  const sel = document.querySelector('#fRatings input[name="rating"]:checked');
+  if (!p || !sel) return;
+  const y = Number($("#fYield").value);
+  const result = {
+    rating: sel.value,
+    yieldValue: y > 0 ? y : null,
+    yieldUnit: $("#fYieldUnit").value === "count" ? "count" : "kg",
+    causes: Array.from(document.querySelectorAll("#fCauses input:checked")).map((c) => c.value),
+    note: $("#fNote").value.trim(),
+    region: userRegion(),           // 統計用：記録した時点の地域区分
+    recordedAt: todayJST()
+  };
+  const data = { result, updatedAt: serverTimestamp() };
+  if (p.status !== "done") Object.assign(data, { status: "done", finishedAt: todayJST() });
+  fire(updateDoc(subDoc("plantings", p.id), data), p.status === "done" ? "結果を保存しました" : "栽培を終了しました");
+  if ($("#dlgDetail").open) $("#dlgDetail").close();
+});
+
+function resultHtml(p) {
+  if (p.status !== "done") return "";
+  const res = p.result;
+  if (!res) {
+    return '<div class="card small" style="margin:0 0 8px">結果がまだ記録されていません。'
+      + '<button class="ghost" data-finish="' + esc(p.id) + '" style="margin-left:6px">結果を記録</button></div>';
+  }
+  const causes = (res.causes || []).map((k) => (CAUSES.find((c) => c[0] === k) || [k, k])[1]);
+  return '<div class="card small" style="margin:0 0 8px"><div class="spread"><span>結果 ' + ratingBadge(res.rating)
+    + (fmtYield(res) ? "　収穫量 " + esc(fmtYield(res)) : "") + "</span>"
+    + '<button class="ghost" data-finish="' + esc(p.id) + '">編集</button></div>'
+    + (causes.length ? '<div class="muted">原因：' + esc(causes.join("、")) + "</div>" : "")
+    + (res.note ? "<div>" + esc(res.note) + "</div>" : "") + "</div>";
+}
+
+// ---------- 画面：実績 ----------
+function renderRecords() {
+  if (!state.master) return;
+  // 予定のままのもの・取りやめたものは実績に含めない
+  const list = state.plantings.filter((p) => p.status === "active" || p.status === "done")
+    .map((p) => ({ p, start: startDateOf(p) || "" }))
+    .sort((a, b) => a.start.localeCompare(b.start));
+
+  // 作物ごとの通し番号（何回目）
+  const nth = {};
+  list.forEach((x) => { nth[x.p.cropId] = (nth[x.p.cropId] || 0) + 1; x.n = nth[x.p.cropId]; });
+
+  const byCrop = {};
+  list.forEach(({ p }) => {
+    const s = byCrop[p.cropId] || (byCrop[p.cropId] = { total: 0, active: 0, great: 0, normal: 0, poor: 0, failed: 0, kg: 0 });
+    s.total++;
+    if (p.status === "active") s.active++;
+    const r = p.result;
+    if (p.status === "done" && r && RATINGS[r.rating]) s[r.rating]++;
+    if (r && r.yieldUnit !== "count" && r.yieldValue > 0) s.kg += r.yieldValue;
+  });
+
+  const crops = Object.keys(byCrop).sort((a, b) => byCrop[b].total - byCrop[a].total);
+  if (crops.length === 0) {
+    $("#recordSummary").innerHTML = '<div class="card empty">まだ実績がありません。種まき・植え付けを記録するとここに集計されます。</div>';
+    $("#recordList").innerHTML = "";
+    return;
+  }
+  $("#recordSummary").innerHTML = '<div class="card table-wrap"><table class="stats"><tr><th>作物</th><th>回数</th><th>豊作</th><th>普通</th><th>不作</th><th>失敗</th><th>成功率</th><th>収穫量</th></tr>'
+    + crops.map((id) => {
+      const s = byCrop[id];
+      const crop = cropById(id);
+      const rated = s.great + s.normal + s.poor + s.failed;
+      const rate = rated ? Math.round((s.great + s.normal) / rated * 100) + "%" : "—";
+      return "<tr><td>" + esc(crop ? crop.name : id) + "</td><td>" + s.total + (s.active ? '<div class="muted" style="font-size:11px">栽培中' + s.active + "</div>" : "") + "</td>"
+        + "<td>" + s.great + "</td><td>" + s.normal + "</td><td>" + s.poor + "</td><td>" + s.failed + "</td>"
+        + "<td><b>" + rate + "</b></td><td>" + (s.kg ? Math.round(s.kg * 10) / 10 + "kg" : "—") + "</td></tr>";
+    }).join("") + "</table></div>";
+
+  $("#recordList").innerHTML = list.slice().reverse().map(({ p, start, n }) => {
+    const crop = cropById(p.cropId);
+    const end = p.finishedAt ? md(p.finishedAt) : "";
+    const res = p.result;
+    const badge = p.status === "active" ? '<span class="rt growing">栽培中</span>' : (res ? ratingBadge(res.rating) : '<span class="rt growing">結果未記録</span>');
+    const causes = res && res.causes && res.causes.length
+      ? (res.causes.map((k) => (CAUSES.find((c) => c[0] === k) || [k, k])[1]).join("、")) : "";
+    return '<div class="card rec" data-open="' + esc(p.id) + '" style="cursor:pointer">'
+      + "<div><b>" + esc(crop ? crop.name : p.cropId) + " " + n + "回目</b>"
+      + (p.memo ? ' <span class="small muted">' + esc(p.memo) + "</span>" : "") + "</div>"
+      + "<div>" + badge + "</div>"
+      + '<div class="small muted">' + esc(start ? start.slice(0, 4) + "/" + md(start) : "") + (end ? "〜" + esc(end) : "〜")
+      + " · " + esc(methodOf(crop, p).label) + (res && fmtYield(res) ? " · " + esc(fmtYield(res)) : "") + "</div><div></div>"
+      + (causes ? '<div class="small" style="grid-column:1/-1">原因：' + esc(causes) + "</div>" : "")
+      + (res && res.note ? '<div class="small muted" style="grid-column:1/-1">' + esc(res.note) + "</div>" : "")
+      + "</div>";
+  }).join("");
+  $("#recordList").querySelectorAll("[data-open]").forEach((el) => {
+    el.addEventListener("click", () => openDetail(el.dataset.open));
   });
 }
 
@@ -600,7 +797,7 @@ function renderPlantings() {
       const crop = cropById(p.cropId);
       return '<div class="card spread small" data-open="' + esc(p.id) + '" style="cursor:pointer"><span>'
         + esc(crop ? crop.name : p.cropId) + (p.memo ? "（" + esc(p.memo) + "）" : "")
-        + '</span><span class="muted">' + esc(p.finishedAt ? md(p.finishedAt) + " 終了" : "") + "</span></div>";
+        + '</span><span class="muted">' + (p.result ? ratingBadge(p.result.rating) + " " : "") + esc(p.finishedAt ? md(p.finishedAt) + " 終了" : "") + "</span></div>";
     }).join("");
   }
   box.innerHTML = html;
@@ -609,7 +806,7 @@ function renderPlantings() {
   });
 }
 
-function openAddPlanting(cropId) {
+function openAddPlanting(cropId, methodKey) {
   if (state.fields.length === 0) {
     toast("先に畑を登録してください");
     switchView("fields");
@@ -629,6 +826,10 @@ function openAddPlanting(cropId) {
   $("#pFertType").value = last.fertType === "organic" ? "organic" : "chemical";
   showAddStep(1);
   syncMethodOptions();
+  if (methodKey && $("#pMethod").querySelector('option[value="' + methodKey + '"]')) {
+    $("#pMethod").value = methodKey;
+    syncStartLabel();
+  }
   $("#dlgPlanting").showModal();
 }
 
@@ -669,6 +870,7 @@ function syncStartLabel() {
   const note = $("#pMethodNote");
   note.textContent = (m && m.warning) || "";
   note.hidden = !(m && m.warning);
+  syncSeasonNote();
 }
 
 function readBed(lenSel, widSel) {
@@ -735,6 +937,7 @@ function goConfirm() {
   ];
   $("#pSummary").innerHTML = '<table class="summary">'
     + rows.map(([k, v]) => "<tr><th>" + esc(k) + "</th><td>" + esc(v) + "</td></tr>").join("") + "</table>";
+  $("#pSeasonConfirm").innerHTML = seasonNoteHtml(crop, data.startMethod, date, { showOk: true });
 
   const prep = prepHtml(crop, data);
   const noPrep = '<div class="prep small muted">' + (planned
@@ -747,6 +950,7 @@ function goConfirm() {
 $("#pCrop").addEventListener("change", syncMethodOptions);
 $("#pMethod").addEventListener("change", syncStartLabel);
 $("#pStatus").addEventListener("change", syncStartLabel);
+$("#pStartDate").addEventListener("change", syncSeasonNote);
 $("#btnAddPlanting").addEventListener("click", () => openAddPlanting(null));
 $("#btnPConfirm").addEventListener("click", goConfirm);
 $("#btnPBack").addEventListener("click", () => showAddStep(1));
@@ -836,6 +1040,8 @@ function renderDetail(id) {
   $("#dFertDisplay").value = showAmounts(p) ? "amount" : "timing";
   $("#dFertType").value = fertType(p);
   $("#dPrep").innerHTML = prepHtml(crop, p);
+  $("#dResult").innerHTML = resultHtml(p);
+  $("#dResult").querySelectorAll("[data-finish]").forEach((b) => b.addEventListener("click", () => openFinish(b.dataset.finish)));
 
   const events = p.events || {};
   $("#dEvents").innerHTML = eventsForPlanting(crop, p).map((ev) => {
@@ -902,10 +1108,13 @@ $("#dlgDetail").addEventListener("close", () => { openDetailId = null; });
 $("#btnFinishPlanting").addEventListener("click", () => {
   const p = state.plantings.find((x) => x.id === openDetailId);
   if (!p) return;
-  const msg = isPlanned(p) ? "この予定を取りやめますか？（記録は残ります）" : "この作付けを終了しますか？（記録は残ります）";
-  if (!confirm(msg)) return;
-  fire(updateDoc(subDoc("plantings", p.id), { status: "done", finishedAt: todayJST(), updatedAt: serverTimestamp() }), "終了しました");
-  $("#dlgDetail").close();
+  if (isPlanned(p)) {
+    if (!confirm("この予定を取りやめますか？")) return;
+    fire(updateDoc(subDoc("plantings", p.id), { status: "cancelled", finishedAt: todayJST(), updatedAt: serverTimestamp() }), "予定を取りやめました");
+    $("#dlgDetail").close();
+    return;
+  }
+  openFinish(p.id);
 });
 
 // ---------- 画面：畑・設定 ----------
@@ -982,6 +1191,7 @@ function renderSettings() {
   const u = state.userDoc;
   if (!u) return;
   $("#selRegion").value = u.region || "mid";
+  $("#chkShareStats").checked = u.shareStats === true;
   const started = u.trialStartedAt && u.trialStartedAt.toDate
     ? u.trialStartedAt.toDate().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" }) : "";
   $("#planInfo").textContent = u.plan === "trial"
@@ -989,12 +1199,18 @@ function renderSettings() {
     : "プラン：" + u.plan;
 }
 
+$("#chkShareStats").addEventListener("change", () => {
+  const on = $("#chkShareStats").checked;
+  fire(updateDoc(userRef(), { shareStats: on, shareStatsChangedAt: serverTimestamp() }),
+    on ? "統計への提供をオンにしました" : "統計への提供をオフにしました");
+});
+
 $("#selRegion").addEventListener("change", () => {
   fire(updateDoc(userRef(), { region: $("#selRegion").value }), "地域区分を変更しました");
 });
 
 // ---------- タブ切り替え ----------
-const VIEW_TITLES = { today: "今日やること", plantings: "作付け", fields: "畑・設定" };
+const VIEW_TITLES = { today: "今日やること", plantings: "作付け", records: "実績", fields: "畑・設定" };
 
 function switchView(name) {
   document.querySelectorAll("section.view").forEach((s) => s.classList.toggle("active", s.id === "view-" + name));
