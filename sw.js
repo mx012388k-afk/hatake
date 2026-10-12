@@ -2,7 +2,7 @@
 // アプリ本体（同一オリジンのファイル）と Firebase SDK をキャッシュし、オフラインでも起動できるようにする。
 // データの同期は Firestore のオフライン永続化が担当する。天気APIはキャッシュしない（アプリ側で保持）。
 
-const CACHE = "hatake-v0.2.0";
+const CACHE = "hatake-v0.2.1";
 const SHELL = [
   "./",
   "./index.html",
