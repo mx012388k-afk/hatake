@@ -94,6 +94,15 @@
     .badge.new { background: var(--accent-soft); color: var(--accent); }
     .badge.draft { background: var(--warn-soft); color: var(--warn); }
     .badge.late { background: var(--danger); color: var(--surface); }
+    .amounts { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; margin: 0 0 8px; font-size: 14px; }
+    .amounts div + div { margin-top: 2px; }
+    .prep { margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .prep-step { border-top: 1px solid var(--line); padding: 10px 0 2px; margin-top: 8px; }
+    .prep-step.done { opacity: .6; }
+    .prep-step .amounts { margin-top: 6px; }
+    .prep ul { margin: 4px 0 6px; padding-left: 1.2em; }
+    .ok { color: var(--accent); font-weight: 700; }
+    dialog { max-height: calc(100dvh - 32px); overflow-y: auto; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .spread { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     button, .btn {
@@ -195,7 +204,7 @@
         <div id="todaySow"></div>
         <footer class="credit">
           天気は <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a>（CC BY 4.0）の数値計算結果をそのまま表示しています。予報ではなく誤差を含む可能性があります。<br>
-          作業の目安は一般的な栽培知識に基づくたたき台（検証中）です。
+          作業の目安・肥料の量は一般的な栽培知識に基づくたたき台（検証中）です。肥料は袋の表示も確認して加減してください。
         </footer>
       </section>
 
@@ -222,6 +231,16 @@
             <option value="cold">寒地・寒冷地</option>
             <option value="mid">中間地</option>
             <option value="warm">暖地</option>
+          </select>
+          <label for="selFertDisplay">肥料の表示</label>
+          <select id="selFertDisplay">
+            <option value="amount">量まで表示する（畝の大きさから計算）</option>
+            <option value="timing">タイミングだけ表示する</option>
+          </select>
+          <label for="selFertType">肥料の種類</label>
+          <select id="selFertType">
+            <option value="chemical">化成肥料（8-8-8 など）</option>
+            <option value="organic">有機肥料（鶏ふん・油かす など）</option>
           </select>
           <p class="small muted" id="planInfo" style="margin:10px 0 0"></p>
           <div class="row" style="margin-top:12px">
@@ -280,8 +299,19 @@
       <label for="pMethod">始め方</label>
       <select id="pMethod" required></select>
       <p class="small" id="pMethodNote" hidden style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--warn-soft);color:var(--warn)"></p>
+      <label for="pStatus">状況</label>
+      <select id="pStatus">
+        <option value="planned">これから始める（土づくりから案内）</option>
+        <option value="started">もう始めている</option>
+      </select>
       <label for="pStartDate" id="pStartLabel">開始日</label>
       <input id="pStartDate" type="date" required>
+      <p class="small muted" id="pPlanHint" style="margin:6px 0 0">予定日から逆算して、石灰・堆肥・元肥・畝立ての時期を「今日やること」でお知らせします。</p>
+      <label>畝の大きさ（任意・肥料の量の計算に使用）</label>
+      <div class="grid2">
+        <input id="pLen" type="number" step="0.1" min="0" inputmode="decimal" placeholder="長さ（m）">
+        <input id="pWid" type="number" step="0.1" min="0" inputmode="decimal" placeholder="幅（m）">
+      </div>
       <label for="pMemo">メモ（品種など）</label>
       <input id="pMemo" placeholder="例：小カブ、品種名">
       <div class="row" style="margin-top:16px; justify-content:flex-end">
@@ -295,6 +325,17 @@
   <dialog id="dlgDetail">
     <h3 id="dDetailTitle"></h3>
     <p class="small muted" id="dDetailSub" style="margin:0 0 8px"></p>
+    <div id="dPlan" hidden>
+      <label for="dPlanDate" id="dPlanLabel">予定日</label>
+      <input id="dPlanDate" type="date">
+    </div>
+    <label>畝の大きさ <span class="muted" id="dArea"></span></label>
+    <div class="grid2">
+      <input id="dLen" type="number" step="0.1" min="0" inputmode="decimal" placeholder="長さ（m）">
+      <input id="dWid" type="number" step="0.1" min="0" inputmode="decimal" placeholder="幅（m）">
+    </div>
+    <div id="dPrep"></div>
+    <h2 style="margin:16px 0 6px">作業の記録</h2>
     <table class="events" id="dEvents"></table>
     <div class="row" style="margin-top:16px; justify-content:space-between">
       <button class="danger ghost" id="btnFinishPlanting">栽培を終了</button>

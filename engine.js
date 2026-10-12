@@ -216,6 +216,7 @@
           message: rule.message,
           priority: rule.priority,
           confidence: rule.confidence,
+          fertilizer: rule.fertilizer || null,
           overdue: overdue,
           reasons: reasons
         });
@@ -227,6 +228,92 @@
       return (a.priority - b.priority) || ((b.overdue ? 1 : 0) - (a.overdue ? 1 : 0));
     });
     return { stage: stage, tasks: results };
+  }
+
+  // ---------- 土づくり（準備） ----------
+  /**
+   * 土づくりの基準日（種まき予定日／定植予定日）を求める。
+   * 基準のイベントが記録済みなら準備は終わっているので null。
+   * 戻り値: { event, date, estimated } または null
+   */
+  function prepAnchor(crop, planting) {
+    var sp = crop.soilPrep;
+    if (!sp) return null;
+    var method = planting.startMethod || crop.defaultStartMethod;
+    var ev = (sp.anchorEvents && sp.anchorEvents[method]) || 'sow';
+    var events = planting.events || {};
+    if (events[ev]) return null;
+    if (planting.plannedEvent === ev && planting.plannedDate) {
+      return { event: ev, date: String(planting.plannedDate).slice(0, 10), estimated: false };
+    }
+    // たまねぎを種から育てている場合：播種日＋育苗日数で定植予定日を見積もる
+    if (ev === 'transplant' && events.sow && sp.estimateFromSow) {
+      return { event: ev, date: addDays(events.sow, sp.estimateFromSow), estimated: true };
+    }
+    return null;
+  }
+
+  function stepAmounts(step, fertType) {
+    var a = step.amounts || {};
+    return (a.common || []).concat(a[fertType] || []);
+  }
+
+  /** 準備の全工程と予定日（作付けの詳細画面用） */
+  function prepSchedule(crop, planting, fertType) {
+    var anchor = prepAnchor(crop, planting);
+    if (!anchor) return null;
+    var events = planting.events || {};
+    var type = fertType === 'organic' ? 'organic' : 'chemical';
+    return {
+      anchor: anchor,
+      steps: crop.soilPrep.steps.map(function (st) {
+        var before = (st.daysBefore && st.daysBefore[type]) || 0;
+        return {
+          id: st.id, event: st.event, title: st.title, message: st.message,
+          dueDate: addDays(anchor.date, -before), daysBefore: before,
+          doneDate: events[st.event] || null,
+          amounts: stepAmounts(st, type)
+        };
+      })
+    };
+  }
+
+  /**
+   * 今日やるべき準備作業。
+   * - 各工程は「基準日 − daysBefore」から表示し、記録されるまで出し続ける
+   * - 予定のまま基準日を迎えたら、種まき（定植）の記録を促す
+   */
+  function evaluatePrep(crop, planting, ctx, fertType) {
+    var sched = prepSchedule(crop, planting, fertType);
+    var tasks = [];
+    if (!sched) return tasks;
+    var today = ctx.today;
+    var daysLeft = daysBetween(today, sched.anchor.date);
+
+    sched.steps.forEach(function (st, i) {
+      if (st.doneDate || today < st.dueDate) return;
+      // 後の工程が先に記録されていれば、前の工程は省略されたものとして出さない
+      var laterDone = sched.steps.slice(i + 1).some(function (s) { return !!s.doneDate; });
+      if (laterDone) return;
+      tasks.push({
+        kind: 'prep', plantingId: planting.id, cropId: crop.id,
+        ruleId: 'prep-' + st.id, event: st.event,
+        title: st.title, message: st.message, amounts: st.amounts,
+        dueDate: st.dueDate, anchor: sched.anchor, daysLeft: daysLeft,
+        overdue: today > addDays(st.dueDate, 3),
+        priority: 2, confidence: crop.soilPrep.confidence || 'draft'
+      });
+    });
+
+    if (planting.status === 'planned' && planting.plannedEvent === sched.anchor.event && daysLeft <= 0) {
+      tasks.unshift({
+        kind: 'start', plantingId: planting.id, cropId: crop.id,
+        ruleId: 'start-' + sched.anchor.event, event: sched.anchor.event,
+        anchor: sched.anchor, daysLeft: daysLeft, overdue: daysLeft < 0,
+        priority: 1, confidence: 'draft'
+      });
+    }
+    return tasks;
   }
 
   /** 全作付けをまとめて評価 */
@@ -261,6 +348,9 @@
     evaluatePlanting: evaluatePlanting,
     sowableNow: sowableNow,
     currentStage: currentStage,
+    evaluatePrep: evaluatePrep,
+    prepSchedule: prepSchedule,
+    prepAnchor: prepAnchor,
     _util: { daysBetween: daysBetween, addDays: addDays, inCalendarRange: inCalendarRange, gddSince: gddSince, dryDays: dryDays }
   };
 });

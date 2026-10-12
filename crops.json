@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.1.1",
+  "schemaVersion": "0.2.0",
   "updatedAt": "2026-10-12",
   "notes": "作物マスタのたたき台。全項目 confidence=draft（一般的な栽培知識に基づく初期値・要検証）。地域別の暦は中間地のみ作成。積算温度ルールは閾値未検証のため enabled=false。",
   "regions": {
@@ -232,7 +232,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "onion-fert-2",
@@ -259,7 +273,22 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ],
+            "organicNote": "有機肥料は効くまで時間がかかるので、2月上旬までに済ませましょう。"
+          }
         },
         {
           "id": "onion-stop-fert",
@@ -286,7 +315,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "onion-frost-heave",
@@ -348,7 +391,88 @@
           "confidence": "draft",
           "enabled": true
         }
-      ]
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seed": "transplant",
+          "seedling": "transplant"
+        },
+        "estimateFromSow": 55,
+        "targetPH": "6.0〜7.0",
+        "tips": [
+          "たまねぎは酸性の土に弱いので、苦土石灰を必ず入れます。",
+          "植え付ける畑（本畑）の準備です。種から育てている場合は、育苗の日数から定植予定日を見積もって案内します。",
+          "根が浅く肥料を吸う力が弱いので、元肥はしっかり入れます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 150
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 150
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 300
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 150
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ10cm程度の畝を立てます。黒マルチを張ると、冬の地温を保ち雑草も抑えられます。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      }
     },
     {
       "id": "daikon",
@@ -511,7 +635,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "daikon-thin-3",
@@ -544,7 +682,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "daikon-heavy-rain",
@@ -680,7 +832,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "daikon-seedling-harvest",
@@ -704,7 +870,86 @@
           "confidence": "draft",
           "enabled": true
         }
-      ]
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seed": "sow",
+          "seedling": "transplant"
+        },
+        "targetPH": "5.5〜6.5",
+        "tips": [
+          "深さ30cm以上までよく耕し、石や土の塊、前の作物の根を取り除きます。根が当たると二股になる原因になります。",
+          "未熟な堆肥や生の有機物は根が二股になる原因になるので、完熟したものを早めに入れます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、深くまでよく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "水はけをよくするため、高さ10〜15cmの畝を立てます。表面は平らにならしておきます。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      }
     },
     {
       "id": "carrot",
@@ -901,7 +1146,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "carrot-thin-3",
@@ -934,7 +1193,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "carrot-harvest",
@@ -1013,7 +1286,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "carrot-seedling-fert-2",
@@ -1046,7 +1333,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 30
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 50
+              }
+            ]
+          }
         },
         {
           "id": "carrot-seedling-harvest",
@@ -1070,7 +1371,87 @@
           "confidence": "draft",
           "enabled": true
         }
-      ]
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seed": "sow",
+          "seedling": "transplant"
+        },
+        "targetPH": "5.5〜6.5",
+        "tips": [
+          "深さ30cm以上までよく耕し、石や土の塊を取り除きます。根が当たると二股になる原因になります。",
+          "肥料が多すぎると根が割れたり二股になったりしやすいので、入れすぎに注意します。",
+          "未熟な堆肥は二股の原因になるので、完熟したものを早めに入れます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、深くまでよく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ10cm程度の畝を立て、表面を細かく平らにならします。種が小さいので、土の塊があると発芽がそろいません。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      }
     },
     {
       "id": "turnip",
@@ -1249,7 +1630,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 20
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 30
+              }
+            ]
+          }
         },
         {
           "id": "turnip-thin-3",
@@ -1361,7 +1756,21 @@
             "draft-general"
           ],
           "confidence": "draft",
-          "enabled": true
+          "enabled": true,
+          "fertilizer": {
+            "chemical": [
+              {
+                "name": "化成肥料（8-8-8）",
+                "g_m2": 20
+              }
+            ],
+            "organic": [
+              {
+                "name": "油かす",
+                "g_m2": 30
+              }
+            ]
+          }
         },
         {
           "id": "turnip-seedling-harvest",
@@ -1385,7 +1794,90 @@
           "confidence": "draft",
           "enabled": true
         }
-      ]
+      ],
+      "soilPrep": {
+        "anchorEvents": {
+          "seed": "sow",
+          "seedling": "transplant"
+        },
+        "targetPH": "5.5〜6.5",
+        "tips": [
+          "根が浅いので深く耕す必要はありませんが、土を細かくしておくと形のよいカブになります。",
+          "乾燥と肥料切れで根が割れたり硬くなったりしやすいので、元肥はしっかり入れます。"
+        ],
+        "steps": [
+          {
+            "id": "lime",
+            "event": "prepLime",
+            "daysBefore": {
+              "chemical": 14,
+              "organic": 21
+            },
+            "title": "苦土石灰をまいて耕す",
+            "message": "苦土石灰をまいて、深さ20〜30cmまでよく耕します。土の酸度を整える作業です。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "苦土石灰",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "base",
+            "event": "prepBase",
+            "daysBefore": {
+              "chemical": 7,
+              "organic": 14
+            },
+            "title": "堆肥と元肥を入れて耕す",
+            "message": "完熟堆肥と元肥を全体にまいて、よく混ぜ込みます。有機肥料は効き始めるまで時間がかかるため、化成肥料より1週間ほど早めに入れます。",
+            "amounts": {
+              "common": [
+                {
+                  "name": "完熟堆肥",
+                  "g_m2": 2000
+                }
+              ],
+              "chemical": [
+                {
+                  "name": "化成肥料（8-8-8）",
+                  "g_m2": 100
+                }
+              ],
+              "organic": [
+                {
+                  "name": "発酵鶏ふん",
+                  "g_m2": 200
+                },
+                {
+                  "name": "油かす",
+                  "g_m2": 100
+                }
+              ]
+            }
+          },
+          {
+            "id": "ridge",
+            "event": "prepRidge",
+            "daysBefore": {
+              "chemical": 3,
+              "organic": 3
+            },
+            "title": "畝を立てる",
+            "message": "高さ10cm程度の畝を立て、表面を平らにならします。"
+          }
+        ],
+        "sources": [
+          "draft-general"
+        ],
+        "confidence": "draft"
+      }
     }
-  ]
+  ],
+  "fertilizerNotes": {
+    "chemical": "化成肥料（8-8-8）は窒素・リン酸・カリが各8%の一般的な肥料です。成分の違う肥料を使う場合は、窒素の量が同じになるように加減してください。",
+    "organic": "有機肥料は製品によって成分が大きく違います。袋の表示を確認して加減してください。"
+  }
 }

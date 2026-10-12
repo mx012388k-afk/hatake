@@ -1,4 +1,4 @@
-// 畑ノート 試作版 v0.1
+// 畑ノート 試作版 v0.2（土づくり・肥料の量に対応）
 // 素のJS（ES Modules）＋ Firebase（Auth / Firestore オフライン永続化）
 // 日付はすべて 'YYYY-MM-DD' 文字列（JST）で扱う。
 
@@ -18,6 +18,9 @@ const Engine = window.AgriEngine;
 
 // ---------- 定数 ----------
 const EVENT_LABELS = {
+  prepLime: "苦土石灰をまいた",
+  prepBase: "堆肥・元肥を入れた",
+  prepRidge: "畝を立てた",
   sow: "種まき",
   germinate: "発芽",
   transplant: "定植",
@@ -32,7 +35,7 @@ const EVENT_LABELS = {
   harvestEnd: "収穫終了"
 };
 const EVENT_ORDER = [
-  "sow", "germinate", "transplant", "rooted", "thin1", "thin2", "thin3",
+  "prepLime", "prepBase", "prepRidge", "sow", "germinate", "transplant", "rooted", "thin1", "thin2", "thin3",
   "fertilize1", "fertilize2", "bulbStart", "harvestStart", "harvestEnd"
 ];
 const WX_TTL_MS = 3 * 60 * 60 * 1000; // 天気キャッシュの有効時間（3時間）
@@ -58,6 +61,49 @@ function todayJST() {
 function md(dateStr) {
   const s = String(dateStr).slice(0, 10);
   return Number(s.slice(5, 7)) + "/" + Number(s.slice(8, 10));
+}
+
+// ---------- 肥料の設定と量の表示 ----------
+function fertType() {
+  return (state.userDoc && state.userDoc.fertType) === "organic" ? "organic" : "chemical";
+}
+
+function showAmounts() {
+  return !(state.userDoc && state.userDoc.fertDisplay === "timing");
+}
+
+function bedArea(planting) {
+  const l = Number(planting.bedLength), w = Number(planting.bedWidth);
+  return l > 0 && w > 0 ? l * w : 0;
+}
+
+function fmtWeight(g) {
+  if (g >= 1000) return (Math.round(g / 100) / 10) + "kg";
+  if (g >= 50) return (Math.round(g / 5) * 5) + "g";
+  return Math.round(g) + "g";
+}
+
+function fmtArea(a) {
+  return String(Math.round(a * 100) / 100);
+}
+
+/** 資材リストを表示用の行に整形する（量を出さない設定なら名前だけ） */
+function amountLines(list, planting) {
+  if (!list || list.length === 0) return [];
+  if (!showAmounts()) return ["使うもの：" + list.map((a) => a.name).join("、")];
+  const area = bedArea(planting);
+  return list.map((a) => a.name + "　" + fmtWeight(a.g_m2) + "／㎡"
+    + (area ? "（この畝 " + fmtArea(area) + "㎡で 約" + fmtWeight(a.g_m2 * area) + "）" : ""));
+}
+
+function amountBlock(list, planting, note) {
+  const lines = amountLines(list, planting);
+  if (lines.length === 0 && !note) return "";
+  return '<div class="amounts">' + lines.map((l) => "<div>" + esc(l) + "</div>").join("")
+    + (showAmounts() && list && list.length && !bedArea(planting)
+      ? '<div class="muted small">畝の大きさを登録すると、必要な量を計算します</div>' : "")
+    + (note ? '<div class="muted small">' + esc(note) + "</div>" : "")
+    + "</div>";
 }
 
 function esc(v) {
@@ -148,6 +194,7 @@ function eventsForPlanting(crop, planting) {
   });
   set.add("harvestStart");
   set.add("harvestEnd");
+  if (crop.soilPrep) crop.soilPrep.steps.forEach((st) => set.add(st.event));
   const ordered = EVENT_ORDER.filter((e) => set.has(e));
   set.forEach((e) => { if (!ordered.includes(e)) ordered.push(e); });
   return ordered;
@@ -174,10 +221,20 @@ function prettyReason(text, crop) {
     .replace("予報 tempMax=", "予報最高気温 ");
 }
 
+/** 栽培の開始日（土づくりの記録は除く） */
 function startDateOf(planting) {
   const ev = planting.events || {};
-  const dates = Object.values(ev).filter(Boolean).sort();
+  const dates = Object.keys(ev).filter((k) => !k.startsWith("prep") && ev[k]).map((k) => ev[k]).sort();
   return dates.length ? dates[0] : null;
+}
+
+/** 一覧の並び替え用の日付（予定の作付けは予定日） */
+function sortDateOf(planting) {
+  return startDateOf(planting) || planting.plannedDate || "9999";
+}
+
+function isPlanned(planting) {
+  return planting.status === "planned";
 }
 
 // ---------- Firebase 初期化 ----------
@@ -243,6 +300,8 @@ async function ensureUserDoc(user) {
       await setDoc(userRef(), {
         displayName: user.displayName || "",
         region: "mid",
+        fertDisplay: "amount",
+        fertType: "chemical",
         plan: "trial",
         trialStartedAt: serverTimestamp(),
         createdAt: serverTimestamp()
@@ -274,6 +333,7 @@ function subscribe() {
     state.userDoc = snap.exists() ? snap.data() : null;
     renderSettings();
     renderToday();
+    if (openDetailId) renderDetail(openDetailId);
   }));
   state.unsubs.push(onSnapshot(subCol("fields"), (qs) => {
     state.fields = qs.docs.map((d) => ({ id: d.id, ...d.data() }))
@@ -285,7 +345,13 @@ function subscribe() {
     state.plantings = qs.docs.map((d) => ({ id: d.id, ...d.data() }));
     renderPlantings();
     renderToday();
-    if (openDetailId) renderDetail(openDetailId);
+    if (pendingOpenId && state.plantings.some((p) => p.id === pendingOpenId)) {
+      const id = pendingOpenId;
+      pendingOpenId = null;
+      openDetail(id);
+    } else if (openDetailId) {
+      renderDetail(openDetailId);
+    }
   }));
 }
 
@@ -349,41 +415,66 @@ function renderToday() {
   const today = todayJST();
   $("#hdrSub").textContent = today.replace(/-/g, "/");
   const dismissed = dismissedSet(today);
-  const active = state.plantings.filter((p) => p.status === "active");
+  const current = state.plantings.filter((p) => p.status === "active" || isPlanned(p));
+  const ft = fertType();
 
   const items = [];
-  active.forEach((p) => {
+  current.forEach((p) => {
     const crop = cropById(p.cropId);
     if (!crop) return;
+    // 土づくり（予定日から逆算）と、予定日を迎えたときの記録の案内
+    Engine.evaluatePrep(crop, p, { today }, ft).forEach((t) => {
+      if (dismissed.has(p.id + ":" + t.ruleId)) return;
+      items.push({ ...t, planting: p, crop, stageLabel: "土づくり", resolvedBy: t.event });
+    });
+    if (isPlanned(p)) return;
     const res = Engine.evaluatePlanting(crop, p, buildCtx(p.fieldId, today));
     res.tasks.forEach((t) => {
       if (dismissed.has(p.id + ":" + t.ruleId)) return;
       const rule = crop.rules.find((r) => r.id === t.ruleId);
-      items.push({ ...t, planting: p, crop, stage: res.stage, resolvedBy: rule ? rule.resolvedBy : null });
+      items.push({ ...t, kind: "rule", planting: p, crop, stageLabel: stageName(crop, res.stage), resolvedBy: rule ? rule.resolvedBy : null });
     });
   });
   items.sort((a, b) => (a.priority - b.priority) || ((b.overdue ? 1 : 0) - (a.overdue ? 1 : 0)));
 
   const box = $("#todayTasks");
-  if (active.length === 0) {
+  if (current.length === 0) {
     box.innerHTML = '<div class="card empty">まだ作付けがありません。<br>「作付け」タブから登録しましょう。</div>';
   } else if (items.length === 0) {
     box.innerHTML = '<div class="card empty">今日やることはありません。</div>';
   } else {
     box.innerHTML = items.map((t, i) => {
       const f = fieldById(t.planting.fieldId);
-      const draft = (t.overdue ? '<span class="badge late">遅れ気味</span>' : "")
+      const badges = (t.overdue ? '<span class="badge late">遅れ気味</span>' : "")
         + (t.confidence === "draft" ? '<span class="badge draft">目安・検証中</span>' : "");
+      let title = t.title, msg = t.message, extra = "", why = "";
+      const anchorLabel = t.anchor ? (EVENT_LABELS[t.anchor.event] || t.anchor.event) : "";
+      if (t.kind === "start") {
+        title = anchorLabel + (t.daysLeft < 0 ? "の予定日を過ぎています" : "の予定日です");
+        msg = "済んだら記録しましょう。ここから追肥や間引きなどの案内が始まります。予定を変える場合は、作付けの詳細から予定日を変更できます。";
+        why = anchorLabel + "予定日：" + md(t.anchor.date);
+      } else if (t.kind === "prep") {
+        extra = amountBlock(t.amounts, t.planting);
+        why = anchorLabel + (t.anchor.estimated ? "予定日（見積もり）：" : "予定日：") + md(t.anchor.date)
+          + (t.daysLeft > 0 ? "（あと" + t.daysLeft + "日）" : "") + " / この作業の目安：" + md(t.dueDate) + "ごろ";
+      } else {
+        const fert = t.fertilizer;
+        if (fert) extra = amountBlock(fert[ft], t.planting, ft === "organic" ? fert.organicNote : "");
+        why = t.reasons.map((r) => prettyReason(r, t.crop)).join(" / ");
+      }
+      const btnLabel = t.kind === "start" ? "記録する（今日）" : "やった（今日）";
       const btn = t.resolvedBy
-        ? '<button class="primary" data-act="done" data-i="' + i + '">やった（今日）</button>'
+        ? '<button class="primary" data-act="done" data-i="' + i + '">' + btnLabel + "</button>"
           + '<button class="ghost" data-act="pick" data-i="' + i + '">日付を選んで記録</button>'
         : '<button data-act="dismiss" data-i="' + i + '">確認した</button>';
       return '<div class="card task p' + t.priority + '"><div class="bar"></div><div>'
         + '<div class="meta">' + esc(f ? f.name : "畑未設定") + " · " + esc(t.crop.name)
-        + " · " + esc(stageName(t.crop, t.stage)) + draft + "</div>"
-        + '<div class="title">' + esc(t.title) + "</div>"
-        + '<p class="msg">' + esc(t.message) + "</p>"
-        + '<p class="why">判定の根拠：' + esc(t.reasons.map((r) => prettyReason(r, t.crop)).join(" / ")) + "</p>"
+        + (t.planting.memo ? "（" + esc(t.planting.memo) + "）" : "")
+        + " · " + esc(t.stageLabel) + badges + "</div>"
+        + '<div class="title">' + esc(title) + "</div>"
+        + '<p class="msg">' + esc(msg) + "</p>"
+        + extra
+        + '<p class="why">判定の根拠：' + esc(why) + "</p>"
         + '<div class="row">' + btn + "</div>"
         + "</div></div>";
     }).join("");
@@ -454,32 +545,45 @@ function renderSowable(today) {
 }
 
 // ---------- 画面：作付け ----------
+function plantingCard(p, today) {
+  const crop = cropById(p.cropId);
+  if (!crop) return "";
+  const f = fieldById(p.fieldId);
+  let sub, right;
+  if (isPlanned(p)) {
+    const ev = p.plannedEvent || firstEventOf(crop, p.startMethod);
+    const left = Engine._util.daysBetween(today, p.plannedDate);
+    sub = "土づくり・準備中";
+    right = esc((EVENT_LABELS[ev] || ev) + "予定") + "<br>" + esc(md(p.plannedDate))
+      + (left > 0 ? "（あと" + left + "日）" : "");
+  } else {
+    const start = startDateOf(p);
+    const days = start ? Engine._util.daysBetween(start, today) : null;
+    sub = stageName(crop, Engine.currentStage(crop, p));
+    right = start ? esc(md(start)) + "〜<br>" + days + "日目" : "";
+  }
+  return '<div class="card spread" data-open="' + esc(p.id) + '" style="cursor:pointer"><div>'
+    + "<b>" + esc(crop.name) + "</b>"
+    + (p.memo ? ' <span class="small muted">' + esc(p.memo) + "</span>" : "")
+    + (isPlanned(p) ? '<span class="badge new">予定</span>' : "")
+    + '<div class="small muted">' + esc(f ? f.name : "畑未設定") + " · " + esc(methodOf(crop, p).label)
+    + " · " + esc(sub) + "</div></div>"
+    + '<div class="small muted" style="text-align:right">' + right + "</div></div>";
+}
+
 function renderPlantings() {
   const box = $("#plantingList");
   if (!state.master) return;
   const today = todayJST();
-  const active = state.plantings.filter((p) => p.status === "active")
-    .sort((a, b) => String(startDateOf(a)).localeCompare(String(startDateOf(b))));
-  const done = state.plantings.filter((p) => p.status !== "active");
+  const current = state.plantings.filter((p) => p.status === "active" || isPlanned(p))
+    .sort((a, b) => String(sortDateOf(a)).localeCompare(String(sortDateOf(b))));
+  const done = state.plantings.filter((p) => p.status === "done");
 
   let html = "";
-  if (active.length === 0) {
+  if (current.length === 0) {
     html += '<div class="card empty">作付けはまだありません。</div>';
   }
-  html += active.map((p) => {
-    const crop = cropById(p.cropId);
-    if (!crop) return "";
-    const f = fieldById(p.fieldId);
-    const start = startDateOf(p);
-    const days = start ? Engine._util.daysBetween(start, today) : null;
-    const stage = Engine.currentStage(crop, p);
-    return '<div class="card spread" data-open="' + esc(p.id) + '" style="cursor:pointer"><div>'
-      + "<b>" + esc(crop.name) + "</b>"
-      + (p.memo ? ' <span class="small muted">' + esc(p.memo) + "</span>" : "")
-      + '<div class="small muted">' + esc(f ? f.name : "畑未設定") + " · " + esc(methodOf(crop, p).label)
-      + " · " + esc(stageName(crop, stage)) + "</div></div>"
-      + '<div class="small muted" style="text-align:right">' + (start ? esc(md(start)) + "〜<br>" + days + "日目" : "") + "</div></div>";
-  }).join("");
+  html += current.map((p) => plantingCard(p, today)).join("");
 
   if (done.length) {
     html += "<h2>終了した作付け</h2>" + done.map((p) => {
@@ -504,8 +608,10 @@ function openAddPlanting(cropId) {
   $("#pField").innerHTML = state.fields.map((f) => '<option value="' + esc(f.id) + '">' + esc(f.name) + "</option>").join("");
   $("#pCrop").innerHTML = state.master.crops.map((c) => '<option value="' + esc(c.id) + '">' + esc(c.name) + "</option>").join("");
   if (cropId) $("#pCrop").value = cropId;
-  $("#pStartDate").value = todayJST();
+  $("#pStatus").value = "planned";
   $("#pMemo").value = "";
+  $("#pLen").value = "";
+  $("#pWid").value = "";
   syncMethodOptions();
   $("#dlgPlanting").showModal();
 }
@@ -523,16 +629,37 @@ function syncStartLabel() {
   const crop = cropById($("#pCrop").value);
   if (!crop) return;
   const ev = firstEventOf(crop, $("#pMethod").value);
-  $("#pStartLabel").textContent = (EVENT_LABELS[ev] || ev) + "の日";
+  const planned = $("#pStatus").value === "planned";
+  const today = todayJST();
+  $("#pStartLabel").textContent = (EVENT_LABELS[ev] || ev) + (planned ? "の予定日" : "の日");
+  const inp = $("#pStartDate");
+  if (planned) {
+    inp.min = today;
+    inp.removeAttribute("max");
+    if (!inp.value || inp.value < today) inp.value = Engine._util.addDays(today, 14);
+  } else {
+    inp.max = today;
+    inp.removeAttribute("min");
+    if (!inp.value || inp.value > today) inp.value = today;
+  }
+  $("#pPlanHint").hidden = !planned;
   const m = crop.startMethods[$("#pMethod").value];
   const note = $("#pMethodNote");
   note.textContent = (m && m.warning) || "";
   note.hidden = !(m && m.warning);
 }
 
+function readBed(lenSel, widSel) {
+  const l = Number($(lenSel).value), w = Number($(widSel).value);
+  return { bedLength: l > 0 ? l : null, bedWidth: w > 0 ? w : null };
+}
+
 $("#pCrop").addEventListener("change", syncMethodOptions);
 $("#pMethod").addEventListener("change", syncStartLabel);
+$("#pStatus").addEventListener("change", syncStartLabel);
 $("#btnAddPlanting").addEventListener("click", () => openAddPlanting(null));
+
+let pendingOpenId = null;
 
 $("#dlgPlanting").addEventListener("close", () => {
   if ($("#dlgPlanting").returnValue !== "ok") return;
@@ -541,17 +668,25 @@ $("#dlgPlanting").addEventListener("close", () => {
   const method = $("#pMethod").value;
   const ev = firstEventOf(crop, method);
   const date = $("#pStartDate").value;
+  if (!date) return;
+  const planned = $("#pStatus").value === "planned" && date >= todayJST();
   const ref = doc(subCol("plantings"));
-  fire(setDoc(ref, {
+  const base = {
     fieldId: $("#pField").value,
     cropId: crop.id,
     startMethod: method,
     memo: $("#pMemo").value.trim(),
-    events: { [ev]: date },
-    status: "active",
+    ...readBed("#pLen", "#pWid"),
     createdAt: serverTimestamp()
-  }), crop.name + "を追加しました");
-  fire(addDoc(subCol("logs"), { plantingId: ref.id, event: ev, date, createdAt: serverTimestamp() }));
+  };
+  if (planned) {
+    pendingOpenId = ref.id;
+    fire(setDoc(ref, { ...base, status: "planned", plannedEvent: ev, plannedDate: date, events: {} }),
+      crop.name + "の予定を登録しました");
+  } else {
+    fire(setDoc(ref, { ...base, status: "active", events: { [ev]: date } }), crop.name + "を追加しました");
+    fire(addDoc(subCol("logs"), { plantingId: ref.id, event: ev, date, createdAt: serverTimestamp() }));
+  }
 });
 
 // ---------- 作付けの詳細・作業記録 ----------
@@ -563,16 +698,58 @@ function openDetail(id) {
   if (!$("#dlgDetail").open) $("#dlgDetail").showModal();
 }
 
+/** 土づくりの予定表（工程・目安日・量・ポイント） */
+function prepHtml(crop, p) {
+  const ft = fertType();
+  const sched = Engine.prepSchedule(crop, p, ft);
+  if (!sched) return "";
+  const sp = crop.soilPrep;
+  const anchorLabel = EVENT_LABELS[sched.anchor.event] || sched.anchor.event;
+  let html = '<div class="prep"><div class="spread"><b>土づくりの予定</b><span class="badge draft">目安・検証中</span></div>'
+    + '<div class="small muted">' + esc(anchorLabel) + (sched.anchor.estimated ? "予定日（見積もり）" : "予定日") + "："
+    + esc(md(sched.anchor.date)) + " · 肥料：" + (ft === "organic" ? "有機" : "化成") + " · 目標の酸度 pH " + esc(sp.targetPH) + "</div>";
+  html += sched.steps.map((st) =>
+    '<div class="prep-step' + (st.doneDate ? " done" : "") + '">'
+    + '<div class="spread"><span><b>' + esc(md(st.dueDate)) + "ごろ</b>　" + esc(st.title) + "</span>"
+    + '<span class="small ' + (st.doneDate ? "ok" : "muted") + '">' + (st.doneDate ? "済 " + esc(md(st.doneDate)) : "") + "</span></div>"
+    + '<div class="small">' + esc(st.message) + "</div>"
+    + amountBlock(st.amounts, p) + "</div>"
+  ).join("");
+  html += '<div class="small"><b>' + esc(crop.name) + "の土づくりのポイント</b><ul>"
+    + sp.tips.map((t) => "<li>" + esc(t) + "</li>").join("") + "</ul></div>";
+  const note = state.master.fertilizerNotes && state.master.fertilizerNotes[ft];
+  if (note && showAmounts()) html += '<div class="small muted">' + esc(note) + "</div>";
+  return html + "</div>";
+}
+
 function renderDetail(id) {
   const p = state.plantings.find((x) => x.id === id);
   if (!p) { $("#dlgDetail").close(); return; }
   const crop = cropById(p.cropId);
   const f = fieldById(p.fieldId);
+  const today = todayJST();
   $("#dDetailTitle").textContent = crop.name + (p.memo ? "（" + p.memo + "）" : "");
   $("#dDetailSub").textContent = (f ? f.name : "畑未設定") + " · " + methodOf(crop, p).label
-    + " · 現在：" + stageName(crop, Engine.currentStage(crop, p));
+    + " · " + (isPlanned(p) ? "土づくり・準備中" : "現在：" + stageName(crop, Engine.currentStage(crop, p)));
+
+  // 予定日（予定の作付けのみ変更可）と畝の大きさ
+  const plan = $("#dPlan");
+  if (isPlanned(p)) {
+    plan.hidden = false;
+    $("#dPlanLabel").textContent = (EVENT_LABELS[p.plannedEvent] || p.plannedEvent) + "の予定日";
+    $("#dPlanDate").value = p.plannedDate || "";
+    $("#dPlanDate").min = today;
+  } else {
+    plan.hidden = true;
+  }
+  $("#dLen").value = p.bedLength || "";
+  $("#dWid").value = p.bedWidth || "";
+  const area = bedArea(p);
+  $("#dArea").textContent = area ? "面積 " + fmtArea(area) + "㎡" : "未登録";
+
+  $("#dPrep").innerHTML = prepHtml(crop, p);
+
   const events = p.events || {};
-  const today = todayJST();
   $("#dEvents").innerHTML = eventsForPlanting(crop, p).map((ev) => {
     const val = events[ev] || "";
     return "<tr><td>" + esc(EVENT_LABELS[ev] || ev) + "</td><td>"
@@ -588,23 +765,39 @@ function renderDetail(id) {
   $("#dEvents").querySelectorAll("button[data-clear]").forEach((b) => {
     b.addEventListener("click", () => clearEvent(p, b.dataset.clear));
   });
-  $("#btnFinishPlanting").hidden = p.status !== "active";
+  $("#btnFinishPlanting").hidden = p.status === "done";
+  $("#btnFinishPlanting").textContent = isPlanned(p) ? "予定を取りやめる" : "栽培を終了";
 }
 
+$("#dPlanDate").addEventListener("change", () => {
+  const p = state.plantings.find((x) => x.id === openDetailId);
+  const v = $("#dPlanDate").value;
+  if (!p || !v) return;
+  fire(updateDoc(subDoc("plantings", p.id), { plannedDate: v, updatedAt: serverTimestamp() }), "予定日を変更しました");
+});
+
+function saveBed() {
+  const p = state.plantings.find((x) => x.id === openDetailId);
+  if (!p) return;
+  fire(updateDoc(subDoc("plantings", p.id), { ...readBed("#dLen", "#dWid"), updatedAt: serverTimestamp() }), "畝の大きさを保存しました");
+}
+$("#dLen").addEventListener("change", saveBed);
+$("#dWid").addEventListener("change", saveBed);
+
 function recordEvent(planting, ev, date) {
-  fire(updateDoc(subDoc("plantings", planting.id), {
-    ["events." + ev]: date,
-    updatedAt: serverTimestamp()
-  }), (EVENT_LABELS[ev] || ev) + "を記録しました");
+  const data = { ["events." + ev]: date, updatedAt: serverTimestamp() };
+  // 予定の作付けで、種まき（定植）を記録したら栽培中に切り替える
+  if (isPlanned(planting) && ev === planting.plannedEvent) data.status = "active";
+  fire(updateDoc(subDoc("plantings", planting.id), data), (EVENT_LABELS[ev] || ev) + "を記録しました");
   fire(addDoc(subCol("logs"), { plantingId: planting.id, event: ev, date, createdAt: serverTimestamp() }));
 }
 
 function clearEvent(planting, ev) {
   if (!confirm((EVENT_LABELS[ev] || ev) + "の記録を取り消しますか？")) return;
-  fire(updateDoc(subDoc("plantings", planting.id), {
-    ["events." + ev]: deleteField(),
-    updatedAt: serverTimestamp()
-  }), "取り消しました");
+  const data = { ["events." + ev]: deleteField(), updatedAt: serverTimestamp() };
+  // 予定から始めた作付けで開始の記録を取り消したら、予定に戻す
+  if (planting.status === "active" && planting.plannedEvent === ev && planting.plannedDate) data.status = "planned";
+  fire(updateDoc(subDoc("plantings", planting.id), data), "取り消しました");
   fire(addDoc(subCol("logs"), { plantingId: planting.id, event: ev, date: null, action: "clear", createdAt: serverTimestamp() }));
 }
 
@@ -612,7 +805,9 @@ $("#btnCloseDetail").addEventListener("click", () => $("#dlgDetail").close());
 $("#dlgDetail").addEventListener("close", () => { openDetailId = null; });
 $("#btnFinishPlanting").addEventListener("click", () => {
   const p = state.plantings.find((x) => x.id === openDetailId);
-  if (!p || !confirm("この作付けを終了しますか？（記録は残ります）")) return;
+  if (!p) return;
+  const msg = isPlanned(p) ? "この予定を取りやめますか？（記録は残ります）" : "この作付けを終了しますか？（記録は残ります）";
+  if (!confirm(msg)) return;
   fire(updateDoc(subDoc("plantings", p.id), { status: "done", finishedAt: todayJST(), updatedAt: serverTimestamp() }), "終了しました");
   $("#dlgDetail").close();
 });
@@ -691,6 +886,8 @@ function renderSettings() {
   const u = state.userDoc;
   if (!u) return;
   $("#selRegion").value = u.region || "mid";
+  $("#selFertDisplay").value = u.fertDisplay === "timing" ? "timing" : "amount";
+  $("#selFertType").value = u.fertType === "organic" ? "organic" : "chemical";
   const started = u.trialStartedAt && u.trialStartedAt.toDate
     ? u.trialStartedAt.toDate().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" }) : "";
   $("#planInfo").textContent = u.plan === "trial"
@@ -700,6 +897,14 @@ function renderSettings() {
 
 $("#selRegion").addEventListener("change", () => {
   fire(updateDoc(userRef(), { region: $("#selRegion").value }), "地域区分を変更しました");
+});
+
+$("#selFertDisplay").addEventListener("change", () => {
+  fire(updateDoc(userRef(), { fertDisplay: $("#selFertDisplay").value }), "肥料の表示を変更しました");
+});
+
+$("#selFertType").addEventListener("change", () => {
+  fire(updateDoc(userRef(), { fertType: $("#selFertType").value }), "肥料の種類を変更しました");
 });
 
 // ---------- タブ切り替え ----------
