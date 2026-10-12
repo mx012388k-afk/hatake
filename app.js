@@ -106,6 +106,16 @@ function amountLines(list, planting) {
     + (area ? "（この畝 " + fmtArea(area) + "㎡で 約" + fmtWeight(a.g_m2 * area) + "）" : ""));
 }
 
+/** 野菜ごとの肥料の選び方（化成／有機の設定に合わせて表示） */
+function fertGuideHtml(crop, planting) {
+  const g = crop && crop.fertGuide;
+  if (!g) return "";
+  const ft = fertType(planting);
+  return '<div class="guide"><b>肥料の選び方</b>'
+    + "<div>" + esc(g[ft]) + "</div>"
+    + '<div class="muted">' + esc(g.point) + "</div></div>";
+}
+
 function amountBlock(list, planting, note) {
   const lines = amountLines(list, planting);
   if (lines.length === 0 && !note) return "";
@@ -477,7 +487,7 @@ function renderToday() {
       } else {
         const fert = t.fertilizer;
         const ft = fertType(t.planting);
-        if (fert) extra = amountBlock(fert[ft], t.planting, ft === "organic" ? fert.organicNote : "");
+        if (fert) extra = amountBlock(fert[ft], t.planting, ft === "organic" ? fert.organicNote : "") + fertGuideHtml(t.crop, t.planting);
         why = t.reasons.map((r) => prettyReason(r, t.crop)).join(" / ");
       }
       const btnLabel = t.kind === "start" ? "記録する（今日）" : "やった（今日）";
@@ -690,17 +700,201 @@ function resultHtml(p) {
     + (res.note ? "<div>" + esc(res.note) + "</div>" : "") + "</div>";
 }
 
+// ---------- その年の状態（栽培期間の天気と平年比） ----------
+// 過去の気象データ：Open-Meteo Historical Weather API（無料枠は非商用・検証用。約5日遅れで更新）
+const seasonWxInflight = {};
+
+function shiftYears(dateStr, k) {
+  const s = String(dateStr).slice(0, 10);
+  const y = Number(s.slice(0, 4)) + k;
+  const rest = s.slice(4) === "-02-29" ? "-02-28" : s.slice(4);
+  return y + rest;
+}
+
+function round1(v) {
+  return Math.round(v * 10) / 10;
+}
+
+function periodStats(map, from, to) {
+  let n = 0, tsum = 0, rain = 0, hot = 0, frost = 0, rainy = 0;
+  for (let d = from; d <= to; d = Engine._util.addDays(d, 1)) {
+    const x = map[d];
+    if (!x || typeof x.tmax !== "number" || typeof x.tmin !== "number") continue;
+    n++;
+    tsum += (x.tmax + x.tmin) / 2;
+    rain += x.p || 0;
+    if (x.tmax >= 30) hot++;
+    if (x.tmin <= 0) frost++;
+    if ((x.p || 0) >= 1) rainy++;
+  }
+  return n ? { n, avgTemp: tsum / n, totalRain: rain, hotDays: hot, frostDays: frost, rainDays: rainy } : null;
+}
+
+/** 栽培期間の集計範囲（開始〜収穫終了。未記録なら終了日・今日）。データがまだそろっていなければ pending */
+function seasonRange(p) {
+  const start = startDateOf(p);
+  if (!start) return null;
+  const today = todayJST();
+  const lastAvail = Engine._util.addDays(today, -6);
+  const ev = p.events || {};
+  const end = ev.harvestEnd || (p.status === "done" && p.finishedAt ? p.finishedAt : today);
+  const to = end < lastAvail ? end : lastAvail;
+  if (to <= start) return { pending: true, from: start };
+  return { from: start, to };
+}
+
+/** 保存済み・キャッシュ済みの集計があれば同期で返す */
+function cachedSeasonWx(p) {
+  const r = seasonRange(p);
+  if (!r) return null;
+  if (r.pending) return { pending: true };
+  const saved = p.result && p.result.weather;
+  if (saved && saved.to === r.to && saved.from === r.from) return saved;
+  const c = lsGet("swx:" + p.id, null);
+  if (c && c.to === r.to && c.from === r.from) {
+    // 栽培中に端末へキャッシュしていたものは、終了後に結果へ保存する（統計・分析に使うため）
+    if (p.status === "done" && p.result && !saved) fire(updateDoc(subDoc("plantings", p.id), { "result.weather": c }));
+    return c;
+  }
+  return undefined; // 取得が必要
+}
+
+async function fetchSeasonWx(p) {
+  const r = seasonRange(p);
+  const f = fieldById(p.fieldId);
+  if (!r || r.pending || !f) return null;
+  const key = p.id + ":" + r.to;
+  if (seasonWxInflight[key]) return seasonWxInflight[key];
+  seasonWxInflight[key] = (async () => {
+    const url = "https://archive-api.open-meteo.com/v1/archive"
+      + "?latitude=" + encodeURIComponent(f.lat) + "&longitude=" + encodeURIComponent(f.lng)
+      + "&start_date=" + shiftYears(r.from, -5) + "&end_date=" + r.to
+      + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia%2FTokyo";
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    const dl = json.daily || {};
+    const map = {};
+    (dl.time || []).forEach((d, i) => {
+      map[d] = { tmax: dl.temperature_2m_max[i], tmin: dl.temperature_2m_min[i], p: dl.precipitation_sum[i] };
+    });
+    const cur = periodStats(map, r.from, r.to);
+    if (!cur) return null;
+    // 平年：過去5年の同じ期間の平均（データが8割以上そろった年だけ）
+    const past = [];
+    for (let k = 1; k <= 5; k++) {
+      const s = periodStats(map, shiftYears(r.from, -k), shiftYears(r.to, -k));
+      if (s && s.n >= cur.n * 0.8) past.push(s);
+    }
+    const avg = (key2) => past.reduce((a, s) => a + s[key2], 0) / past.length;
+    const w = {
+      from: r.from, to: r.to, days: cur.n,
+      avgTemp: round1(cur.avgTemp), totalRain: Math.round(cur.totalRain),
+      hotDays: cur.hotDays, frostDays: cur.frostDays, rainDays: cur.rainDays,
+      normal: past.length ? {
+        years: past.length, avgTemp: round1(avg("avgTemp")), totalRain: Math.round(avg("totalRain")),
+        hotDays: round1(avg("hotDays")), frostDays: round1(avg("frostDays"))
+      } : null,
+      source: "Open-Meteo Historical Weather API"
+    };
+    // 終了した作付けは結果と一緒に保存（統計・分析にも使う）。栽培中は端末にキャッシュ
+    if (p.status === "done" && p.result) {
+      fire(updateDoc(subDoc("plantings", p.id), { "result.weather": w }));
+    } else {
+      lsSet("swx:" + p.id, w);
+    }
+    return w;
+  })();
+  try {
+    return await seasonWxInflight[key];
+  } finally {
+    delete seasonWxInflight[key];
+  }
+}
+
+function seasonTags(w) {
+  const n = w && w.normal;
+  if (!n) return [];
+  const tags = [];
+  const dt = w.avgTemp - n.avgTemp;
+  const rr = n.totalRain > 0 ? w.totalRain / n.totalRain : 1;
+  if (dt >= 1) tags.push(["hot", "高温の年"]);
+  if (dt <= -1) tags.push(["cool", "低温の年"]);
+  if (rr >= 1.3) tags.push(["wet", "雨が多い年"]);
+  if (rr <= 0.7) tags.push(["dry", "雨が少ない年"]);
+  if (w.hotDays - n.hotDays >= 7) tags.push(["hot", "真夏日が多い"]);
+  if (w.frostDays - n.frostDays >= 5) tags.push(["cool", "冷え込みが多い"]);
+  if (tags.length === 0) tags.push(["norm", "平年並み"]);
+  return tags;
+}
+
+function seasonWxHtml(w) {
+  if (w === undefined) return '<div class="wxs muted">その年の状態を取得中…</div>';
+  if (!w) return "";
+  if (w.pending) return '<div class="wxs muted">その年の状態は、栽培期間の気象データがそろうと表示されます（約1週間後）。</div>';
+  const n = w.normal;
+  const sign = (v) => (v > 0 ? "+" : "") + round1(v);
+  const parts = [
+    "平均気温 " + w.avgTemp + "℃" + (n ? "（平年" + sign(w.avgTemp - n.avgTemp) + "℃）" : ""),
+    "降水量 " + w.totalRain + "mm" + (n && n.totalRain > 0 ? "（平年の" + Math.round(w.totalRain / n.totalRain * 100) + "%）" : ""),
+    "真夏日 " + w.hotDays + "日",
+    "冷え込み（0℃以下）" + w.frostDays + "日"
+  ];
+  return '<div class="wxs"><div class="spread"><b>その年の状態</b><span>'
+    + seasonTags(w).map(([c, l]) => '<span class="wtag ' + c + '">' + esc(l) + "</span>").join("") + "</span></div>"
+    + "<div>" + esc(md(w.from) + "〜" + md(w.to) + "（" + w.days + "日間）") + "</div>"
+    + "<div>" + esc(parts.join("・")) + "</div>"
+    + (n ? '<div class="muted">平年＝過去' + n.years + "年の同じ時期の平均。気象データ：Open-Meteo（モデル値・誤差を含む）</div>" : "")
+    + "</div>";
+}
+
+/** その年の状態を表示する。取得（通信）は、その画面が表示されているときだけ行う */
+function fillSeasonWx(root, visible) {
+  root.querySelectorAll("[data-wx]").forEach((el) => {
+    const p = state.plantings.find((x) => x.id === el.dataset.wx);
+    if (!p) return;
+    const c = cachedSeasonWx(p);
+    if (c !== undefined) { el.innerHTML = seasonWxHtml(c); return; }
+    if (!visible) return;
+    if (!navigator.onLine) { el.innerHTML = '<div class="wxs muted">オフラインのため、その年の状態を取得できません。</div>'; return; }
+    el.innerHTML = seasonWxHtml(undefined);
+    fetchSeasonWx(p).then((w) => {
+      if (el.isConnected) el.innerHTML = seasonWxHtml(w);
+    }).catch((err) => {
+      console.warn("その年の状態の取得に失敗:", err.message);
+      if (el.isConnected) el.innerHTML = '<div class="wxs muted">その年の状態を取得できませんでした。</div>';
+    });
+  });
+}
+
 // ---------- 画面：実績 ----------
-function renderRecords() {
-  if (!state.master) return;
+let recFilter = null; // { cropId, rating: 'all'|'active'|'great'|'normal'|'poor'|'failed' }
+
+function recordItems() {
   // 予定のままのもの・取りやめたものは実績に含めない
   const list = state.plantings.filter((p) => p.status === "active" || p.status === "done")
     .map((p) => ({ p, start: startDateOf(p) || "" }))
     .sort((a, b) => a.start.localeCompare(b.start));
-
-  // 作物ごとの通し番号（何回目）
   const nth = {};
   list.forEach((x) => { nth[x.p.cropId] = (nth[x.p.cropId] || 0) + 1; x.n = nth[x.p.cropId]; });
+  return list;
+}
+
+function matchFilter(p, f) {
+  if (!f) return true;
+  if (f.cropId && p.cropId !== f.cropId) return false;
+  if (f.rating === "all") return true;
+  if (f.rating === "active") return p.status === "active";
+  return p.status === "done" && p.result && p.result.rating === f.rating;
+}
+
+function causeLabels(res) {
+  return (res && res.causes ? res.causes : []).map((k) => (CAUSES.find((c) => c[0] === k) || [k, k])[1]);
+}
+
+function renderRecords() {
+  if (!state.master) return;
+  const list = recordItems();
 
   const byCrop = {};
   list.forEach(({ p }) => {
@@ -711,44 +905,169 @@ function renderRecords() {
     if (p.status === "done" && r && RATINGS[r.rating]) s[r.rating]++;
     if (r && r.yieldUnit !== "count" && r.yieldValue > 0) s.kg += r.yieldValue;
   });
-
   const crops = Object.keys(byCrop).sort((a, b) => byCrop[b].total - byCrop[a].total);
+
   if (crops.length === 0) {
     $("#recordSummary").innerHTML = '<div class="card empty">まだ実績がありません。種まき・植え付けを記録するとここに集計されます。</div>';
+    $("#recordAnalysis").innerHTML = "";
     $("#recordList").innerHTML = "";
     return;
   }
+
+  const btn = (id, rating, label) => '<button class="cellbtn' + (recFilter && recFilter.cropId === id && recFilter.rating === rating ? " on" : "")
+    + '" data-crop="' + esc(id) + '" data-rating="' + rating + '">' + esc(label) + "</button>";
+  const cell = (id, rating, v) => (v > 0 ? btn(id, rating, String(v)) : '<span class="muted">0</span>');
   $("#recordSummary").innerHTML = '<div class="card table-wrap"><table class="stats"><tr><th>作物</th><th>回数</th><th>豊作</th><th>普通</th><th>不作</th><th>失敗</th><th>成功率</th><th>収穫量</th></tr>'
     + crops.map((id) => {
       const s = byCrop[id];
       const crop = cropById(id);
       const rated = s.great + s.normal + s.poor + s.failed;
       const rate = rated ? Math.round((s.great + s.normal) / rated * 100) + "%" : "—";
-      return "<tr><td>" + esc(crop ? crop.name : id) + "</td><td>" + s.total + (s.active ? '<div class="muted" style="font-size:11px">栽培中' + s.active + "</div>" : "") + "</td>"
-        + "<td>" + s.great + "</td><td>" + s.normal + "</td><td>" + s.poor + "</td><td>" + s.failed + "</td>"
-        + "<td><b>" + rate + "</b></td><td>" + (s.kg ? Math.round(s.kg * 10) / 10 + "kg" : "—") + "</td></tr>";
-    }).join("") + "</table></div>";
+      const act = s.active ? '<div class="sub">' + btn(id, "active", "栽培中" + s.active) + "</div>" : "";
+      return "<tr><td>" + btn(id, "all", crop ? crop.name : id) + "</td>"
+        + "<td>" + cell(id, "all", s.total) + act + "</td>"
+        + "<td>" + cell(id, "great", s.great) + "</td><td>" + cell(id, "normal", s.normal) + "</td>"
+        + "<td>" + cell(id, "poor", s.poor) + "</td><td>" + cell(id, "failed", s.failed) + "</td>"
+        + "<td><b>" + rate + "</b></td><td>" + (s.kg ? round1(s.kg) + "kg" : "—") + "</td></tr>";
+    }).join("") + '</table><p class="small muted" style="margin:8px 0 0">数字を押すと、その作付けの一覧と、その年の状態を表示します。</p></div>';
+  $("#recordSummary").querySelectorAll(".cellbtn").forEach((b) => {
+    b.addEventListener("click", () => {
+      const same = recFilter && recFilter.cropId === b.dataset.crop && recFilter.rating === b.dataset.rating;
+      recFilter = same ? null : { cropId: b.dataset.crop, rating: b.dataset.rating };
+      renderRecords();
+      $("#recordListHead").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 
-  $("#recordList").innerHTML = list.slice().reverse().map(({ p, start, n }) => {
+  $("#recordAnalysis").innerHTML = analysisHtml(list);
+
+  // 一覧（絞り込み）
+  const shown = list.filter((x) => matchFilter(x.p, recFilter)).reverse();
+  let head = "これまでの作付け（" + shown.length + "件）";
+  if (recFilter) {
+    const crop = cropById(recFilter.cropId);
+    const rl = recFilter.rating === "all" ? "すべて" : recFilter.rating === "active" ? "栽培中" : RATINGS[recFilter.rating].label;
+    head = (crop ? crop.name : "") + "：" + rl + "（" + shown.length + "件）";
+  }
+  $("#recordListHead").innerHTML = '<div class="spread"><span>' + esc(head) + "</span>"
+    + (recFilter ? '<button class="ghost small" id="btnClearRecFilter">絞り込みを解除</button>' : "") + "</div>";
+  if (recFilter) $("#btnClearRecFilter").addEventListener("click", () => { recFilter = null; renderRecords(); });
+
+  $("#recordList").innerHTML = shown.map(({ p, start, n }) => {
     const crop = cropById(p.cropId);
     const end = p.finishedAt ? md(p.finishedAt) : "";
     const res = p.result;
     const badge = p.status === "active" ? '<span class="rt growing">栽培中</span>' : (res ? ratingBadge(res.rating) : '<span class="rt growing">結果未記録</span>');
-    const causes = res && res.causes && res.causes.length
-      ? (res.causes.map((k) => (CAUSES.find((c) => c[0] === k) || [k, k])[1]).join("、")) : "";
-    return '<div class="card rec" data-open="' + esc(p.id) + '" style="cursor:pointer">'
-      + "<div><b>" + esc(crop ? crop.name : p.cropId) + " " + n + "回目</b>"
+    const causes = causeLabels(res).join("、");
+    return '<div class="card rec">'
+      + '<div data-open="' + esc(p.id) + '" style="cursor:pointer"><b>' + esc(crop ? crop.name : p.cropId) + " " + n + "回目</b>"
       + (p.memo ? ' <span class="small muted">' + esc(p.memo) + "</span>" : "") + "</div>"
       + "<div>" + badge + "</div>"
-      + '<div class="small muted">' + esc(start ? start.slice(0, 4) + "/" + md(start) : "") + (end ? "〜" + esc(end) : "〜")
-      + " · " + esc(methodOf(crop, p).label) + (res && fmtYield(res) ? " · " + esc(fmtYield(res)) : "") + "</div><div></div>"
+      + '<div class="small muted" style="grid-column:1/-1">' + esc(start ? start.slice(0, 4) + "/" + md(start) : "") + "〜" + esc(end)
+      + " · " + esc(methodOf(crop, p).label) + " · " + (fertType(p) === "organic" ? "有機肥料" : "化成肥料")
+      + (res && fmtYield(res) ? " · 収穫 " + esc(fmtYield(res)) : "") + "</div>"
       + (causes ? '<div class="small" style="grid-column:1/-1">原因：' + esc(causes) + "</div>" : "")
-      + (res && res.note ? '<div class="small muted" style="grid-column:1/-1">' + esc(res.note) + "</div>" : "")
+      + (res && res.note ? '<div class="small" style="grid-column:1/-1">メモ：' + esc(res.note) + "</div>" : "")
+      + '<div style="grid-column:1/-1" data-wx="' + esc(p.id) + '"></div>'
       + "</div>";
-  }).join("");
+  }).join("") || '<div class="card empty small">該当する作付けはありません。</div>';
   $("#recordList").querySelectorAll("[data-open]").forEach((el) => {
     el.addEventListener("click", () => openDetail(el.dataset.open));
   });
+  fillSeasonWx($("#recordList"), $("#view-records").classList.contains("active"));
+}
+
+// ---------- 分析（気づき） ----------
+function pct(a, b) {
+  return b ? Math.round(a / b * 100) : 0;
+}
+
+function analysisHtml(list) {
+  const rated = list.filter(({ p }) => p.status === "done" && p.result && RATINGS[p.result.rating]);
+  const ok = (p) => SUCCESS.includes(p.result.rating);
+  const items = [];
+  if (rated.length === 0) {
+    return '<div class="card small muted">栽培を終了して結果を記録すると、ここに分析が表示されます。</div>';
+  }
+  const okCount = rated.filter(({ p }) => ok(p)).length;
+  items.push(["全体", "これまでの成功率は " + pct(okCount, rated.length) + "%（" + rated.length + "件中 " + okCount + "件が豊作・普通）です。"]);
+
+  // 作物別
+  const byCrop = {};
+  rated.forEach(({ p }) => { (byCrop[p.cropId] = byCrop[p.cropId] || []).push(p); });
+  const cropRates = Object.entries(byCrop).filter(([, a]) => a.length >= 2)
+    .map(([id, a]) => ({ id, rate: pct(a.filter(ok).length, a.length), n: a.length }))
+    .sort((a, b) => b.rate - a.rate);
+  if (cropRates.length >= 2) {
+    const best = cropRates[0], worst = cropRates[cropRates.length - 1];
+    if (best.rate !== worst.rate) {
+      items.push(["作物", "得意なのは" + cropById(best.id).name + "（成功率" + best.rate + "%）、苦戦しているのは" + cropById(worst.id).name + "（" + worst.rate + "%）です。"]);
+    }
+  }
+
+  // 適期内・適期外
+  const inSeason = [], offSeason = [];
+  rated.forEach(({ p, start }) => {
+    const crop = cropById(p.cropId);
+    const r = crop && start ? Engine.seasonCheck(crop, p.startMethod || crop.defaultStartMethod, p.result.region || userRegion(), start) : null;
+    if (r) (r.ok ? inSeason : offSeason).push(p);
+  });
+  if (offSeason.length) {
+    const offOk = offSeason.filter(ok).length;
+    let t = "適期外に始めた" + offSeason.length + "件の成功率は " + pct(offOk, offSeason.length) + "%";
+    if (inSeason.length) t += "、適期内の" + inSeason.length + "件は " + pct(inSeason.filter(ok).length, inSeason.length) + "%";
+    items.push(["時期", t + "です。"]);
+  }
+
+  // 肥料の種類・始め方
+  const groupRate = (keyFn, labels) => {
+    const g = {};
+    rated.forEach(({ p }) => { const k = keyFn(p); (g[k] = g[k] || []).push(p); });
+    const keys = Object.keys(g);
+    if (keys.length < 2) return null;
+    return keys.map((k) => labels(k) + " " + pct(g[k].filter(ok).length, g[k].length) + "%（" + g[k].length + "件）").join("、");
+  };
+  const ft = groupRate((p) => fertType(p), (k) => (k === "organic" ? "有機肥料" : "化成肥料"));
+  if (ft) items.push(["肥料", "肥料の種類別の成功率：" + ft + "。"]);
+  Object.entries(byCrop).forEach(([id, a]) => {
+    const methods = new Set(a.map((p) => p.startMethod));
+    if (methods.size < 2) return;
+    const crop = cropById(id);
+    const g = {};
+    a.forEach((p) => { (g[p.startMethod] = g[p.startMethod] || []).push(p); });
+    items.push(["始め方", crop.name + "：" + Object.entries(g).map(([k, v]) => crop.startMethods[k].label + " " + pct(v.filter(ok).length, v.length) + "%").join("、") + "。"]);
+  });
+
+  // 原因
+  const bad = rated.filter(({ p }) => !ok(p));
+  const cc = {};
+  bad.forEach(({ p }) => causeLabels(p.result).forEach((l) => { cc[l] = (cc[l] || 0) + 1; }));
+  const topC = Object.entries(cc).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  if (topC.length) items.push(["原因", "不作・失敗の原因で多いのは " + topC.map(([l, n]) => "「" + l + "」" + n + "件").join("、") + " です。"]);
+
+  // 天気との関係（保存済みの「その年の状態」を使う）
+  const withWx = rated.filter(({ p }) => p.result.weather && p.result.weather.normal);
+  const okW = withWx.filter(({ p }) => ok(p)), badW = withWx.filter(({ p }) => !ok(p));
+  if (okW.length && badW.length) {
+    const meanOf = (arr, f) => arr.reduce((a, x) => a + f(x.p.result.weather), 0) / arr.length;
+    const rain = (w) => (w.normal.totalRain > 0 ? w.totalRain / w.normal.totalRain * 100 : 100);
+    const temp = (w) => w.avgTemp - w.normal.avgTemp;
+    const rb = meanOf(badW, rain), ro = meanOf(okW, rain);
+    const tb = meanOf(badW, temp), to = meanOf(okW, temp);
+    if (Math.abs(rb - ro) >= 20) {
+      items.push(["天気", "不作・失敗の年は平年より雨が" + (rb > ro ? "多い" : "少ない") + "傾向です（降水量 平均" + Math.round(rb) + "%、うまくいった年は" + Math.round(ro) + "%）。"]);
+    }
+    if (Math.abs(tb - to) >= 0.7) {
+      items.push(["天気", "不作・失敗の年は平年より" + (tb > to ? "暑い" : "寒い") + "傾向です（平年差 " + (tb > 0 ? "+" : "") + round1(tb) + "℃、うまくいった年は" + (to > 0 ? "+" : "") + round1(to) + "℃）。"]);
+    }
+  } else if (rated.length && withWx.length < rated.length) {
+    items.push(["天気", "「その年の状態」を取得した作付けが増えると、天気との関係も分析します（実績の一覧を開くと取得します）。"]);
+  }
+
+  const note = rated.length < 5 ? '<div class="small muted" style="margin-top:6px">件数が少ないうちは偶然の影響が大きいので、目安として見てください。</div>' : "";
+  return '<div class="card"><b>分析・気づき</b>'
+    + items.map(([k, t]) => '<div class="insight"><span class="ik">' + esc(k) + "</span><span>" + esc(t) + "</span></div>").join("")
+    + note + "</div>";
 }
 
 // ---------- 画面：作付け ----------
@@ -912,6 +1231,7 @@ function topdressHtml(crop, p) {
     return "";
   }).filter(Boolean).join("、");
   return '<div class="prep"><div class="spread"><b>追肥の予定</b><span class="badge draft">目安・検証中</span></div>'
+    + fertGuideHtml(crop, p)
     + '<div class="topdress">' + rules.map((r) =>
       '<div class="item"><div><b>' + esc(r.title) + "</b>"
       + (when(r) ? ' <span class="small muted">' + esc(when(r)) + "</span>" : "") + "</div>"
@@ -1039,8 +1359,9 @@ function renderDetail(id) {
 
   $("#dFertDisplay").value = showAmounts(p) ? "amount" : "timing";
   $("#dFertType").value = fertType(p);
-  $("#dPrep").innerHTML = prepHtml(crop, p);
-  $("#dResult").innerHTML = resultHtml(p);
+  $("#dPrep").innerHTML = prepHtml(crop, p) + (p.status === "done" ? "" : topdressHtml(crop, p));
+  $("#dResult").innerHTML = resultHtml(p) + (startDateOf(p) ? '<div data-wx="' + esc(p.id) + '"></div>' : "");
+  fillSeasonWx($("#dResult"), true);
   $("#dResult").querySelectorAll("[data-finish]").forEach((b) => b.addEventListener("click", () => openFinish(b.dataset.finish)));
 
   const events = p.events || {};
@@ -1216,6 +1537,7 @@ function switchView(name) {
   document.querySelectorAll("section.view").forEach((s) => s.classList.toggle("active", s.id === "view-" + name));
   document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
   $("#hdrTitle").textContent = VIEW_TITLES[name];
+  if (name === "records") renderRecords();
   window.scrollTo(0, 0);
 }
 
