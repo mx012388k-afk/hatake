@@ -1,14 +1,18 @@
 {
-  "schemaVersion": "0.1.0",
-  "updatedAt": "2026-10-10",
+  "schemaVersion": "0.1.1",
+  "updatedAt": "2026-10-12",
   "notes": "作物マスタのたたき台。全項目 confidence=draft（一般的な栽培知識に基づく初期値・要検証）。地域別の暦は中間地のみ作成。積算温度ルールは閾値未検証のため enabled=false。",
-
   "regions": {
-    "cold": { "name": "寒地・寒冷地" },
-    "mid":  { "name": "中間地" },
-    "warm": { "name": "暖地" }
+    "cold": {
+      "name": "寒地・寒冷地"
+    },
+    "mid": {
+      "name": "中間地"
+    },
+    "warm": {
+      "name": "暖地"
+    }
   },
-
   "sources": [
     {
       "id": "draft-general",
@@ -39,28 +43,25 @@
       "note": "暖地の播種時期と積算気温・根重の試験値。表の列対応は原本で要確認"
     }
   ],
-
   "conditionTypes": {
-    "daysSince":  "指定イベントからの経過日数 { event, gte?, lte?, dueBy? }。lte は超えたら不成立、dueBy は超えても成立のまま「遅れ気味」として表示",
-    "gddSince":   "指定イベントからの積算温度（日平均気温-base の正の値を合計）{ event, base, gte?, lte? }",
-    "calendar":   "暦の期間 { from: 'MM-DD', to: 'MM-DD' }（年をまたぐ場合 from > to）",
-    "stage":      "現在の生育ステージ { in: [stageId] }",
-    "eventDone":  "作業イベントの実施有無 { event, done: true|false }",
-    "forecast":   "予報値（出典付きで中継したもの）{ metric: precipSum|tempMin|tempMax, days, op: gte|lte, value }",
-    "observed":   "観測値 { metric: dryDays|precipSum, days?, op, value }"
+    "daysSince": "指定イベントからの経過日数 { event, gte?, lte?, dueBy? }。lte は超えたら不成立、dueBy は超えても成立のまま「遅れ気味」として表示",
+    "gddSince": "指定イベントからの積算温度（日平均気温-base の正の値を合計）{ event, base, gte?, lte? }",
+    "calendar": "暦の期間 { from: 'MM-DD', to: 'MM-DD' }（年をまたぐ場合 from > to）",
+    "stage": "現在の生育ステージ { in: [stageId] }",
+    "eventDone": "作業イベントの実施有無 { event, done: true|false }",
+    "forecast": "予報値（出典付きで中継したもの）{ metric: precipSum|tempMin|tempMax, days, op: gte|lte, value }",
+    "observed": "観測値 { metric: dryDays|precipSum, days?, op, value }"
   },
-
   "actionTypes": {
     "fertilize": "追肥",
-    "water":     "水やり",
-    "thin":      "間引き",
-    "transplant":"定植",
-    "protect":   "防寒・保護",
-    "care":      "その他の管理作業",
-    "harvest":   "収穫",
-    "notice":    "注意・確認"
+    "water": "水やり",
+    "thin": "間引き",
+    "transplant": "定植",
+    "protect": "防寒・保護",
+    "care": "その他の管理作業",
+    "harvest": "収穫",
+    "notice": "注意・確認"
   },
-
   "crops": [
     {
       "id": "onion",
@@ -69,23 +70,104 @@
       "difficulty": 3,
       "rotationYears": 1,
       "startMethods": {
-        "seed":     { "label": "種から（育苗）", "stages": ["sowing", "nursery", "transplanted", "growing", "bulbing", "harvest"] },
-        "seedling": { "label": "苗から",         "stages": ["transplanted", "growing", "bulbing", "harvest"] }
+        "seed": {
+          "label": "種から（育苗）",
+          "stages": [
+            "sowing",
+            "nursery",
+            "transplanted",
+            "growing",
+            "bulbing",
+            "harvest"
+          ]
+        },
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "growing",
+            "bulbing",
+            "harvest"
+          ]
+        }
       },
       "defaultStartMethod": "seed",
       "stages": [
-        { "id": "sowing",       "name": "播種〜発芽", "startEvent": "sow",        "expectedDays": { "min": 7,  "max": 14 } },
-        { "id": "nursery",      "name": "育苗",       "startEvent": "germinate",  "expectedDays": { "min": 45, "max": 60 } },
-        { "id": "transplanted", "name": "定植〜活着", "startEvent": "transplant", "expectedDays": { "min": 20, "max": 30 } },
-        { "id": "growing",      "name": "越冬・生育", "startEvent": "rooted",     "expectedDays": { "min": 90, "max": 130 } },
-        { "id": "bulbing",      "name": "玉の肥大",   "startEvent": "bulbStart",  "expectedDays": { "min": 40, "max": 60 } },
-        { "id": "harvest",      "name": "収穫",       "startEvent": "harvestStart", "expectedDays": { "min": 7, "max": 21 } }
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 7,
+            "max": 14
+          }
+        },
+        {
+          "id": "nursery",
+          "name": "育苗",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 45,
+            "max": 60
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 20,
+            "max": 30
+          }
+        },
+        {
+          "id": "growing",
+          "name": "越冬・生育",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 90,
+            "max": 130
+          }
+        },
+        {
+          "id": "bulbing",
+          "name": "玉の肥大",
+          "startEvent": "bulbStart",
+          "expectedDays": {
+            "min": 40,
+            "max": 60
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 7,
+            "max": 21
+          }
+        }
       ],
       "calendar": {
         "mid": {
-          "sow":        [{ "from": "09-10", "to": "09-30" }],
-          "transplant": [{ "from": "11-01", "to": "11-30" }],
-          "harvest":    [{ "from": "05-01", "to": "06-20" }]
+          "sow": [
+            {
+              "from": "09-10",
+              "to": "09-30"
+            }
+          ],
+          "transplant": [
+            {
+              "from": "11-01",
+              "to": "11-30"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "05-01",
+              "to": "06-20"
+            }
+          ]
         },
         "cold": null,
         "warm": null
@@ -96,77 +178,178 @@
           "action": "transplant",
           "title": "定植の適期です",
           "message": "苗が鉛筆くらいの太さ・草丈20〜25cmになっていれば定植しましょう。太すぎる苗は春にとう立ちしやすくなります。",
-          "trigger": { "all": [
-            { "type": "stage", "in": ["nursery"] },
-            { "type": "daysSince", "event": "sow", "gte": 50 },
-            { "type": "calendar", "from": "11-01", "to": "11-30" }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "nursery"
+                ]
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 50
+              },
+              {
+                "type": "calendar",
+                "from": "11-01",
+                "to": "11-30"
+              }
+            ]
+          },
           "resolvedBy": "transplant",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "onion-fert-1",
           "action": "fertilize",
           "title": "追肥（1回目）",
           "message": "定植から約3週間。株元に軽く追肥しましょう。",
-          "trigger": { "all": [
-            { "type": "daysSince", "event": "transplant", "gte": 20, "dueBy": 45 },
-            { "type": "eventDone", "event": "fertilize1", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 20,
+                "dueBy": 45
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "fertilize1",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "onion-fert-2",
           "action": "fertilize",
           "title": "追肥（2回目）",
           "message": "春の生育が始まる前の追肥です。",
-          "trigger": { "all": [
-            { "type": "calendar", "from": "02-10", "to": "02-28" },
-            { "type": "eventDone", "event": "fertilize2", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "calendar",
+                "from": "02-10",
+                "to": "02-28"
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "fertilize2",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "onion-stop-fert",
           "action": "notice",
           "title": "追肥（止め肥）の期限が近づいています",
           "message": "3月上旬を過ぎてからの追肥は、玉の傷みや貯蔵性の低下につながります。まだなら今のうちに済ませましょう。",
-          "trigger": { "all": [
-            { "type": "calendar", "from": "03-01", "to": "03-10" },
-            { "type": "eventDone", "event": "fertilize2", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "calendar",
+                "from": "03-01",
+                "to": "03-10"
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "fertilize2",
-          "priority": 1, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "onion-frost-heave",
           "action": "protect",
           "title": "霜柱による浮き上がりを確認",
           "message": "予報の最低気温が低い日が続きます。定植後の苗が霜柱で浮いていたら、株元を軽く踏み固めましょう。",
-          "trigger": { "all": [
-            { "type": "stage", "in": ["transplanted", "growing"] },
-            { "type": "forecast", "metric": "tempMin", "days": 3, "op": "lte", "value": 0 }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted",
+                  "growing"
+                ]
+              },
+              {
+                "type": "forecast",
+                "metric": "tempMin",
+                "days": 3,
+                "op": "lte",
+                "value": 0
+              }
+            ]
+          },
           "resolvedBy": null,
-          "priority": 3, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 3,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "onion-harvest",
           "action": "harvest",
           "title": "収穫の目安",
           "message": "葉が7〜8割倒れたら収穫適期です。晴れが続く日に抜いて、畑で乾かしましょう。",
-          "trigger": { "all": [
-            { "type": "calendar", "from": "05-01", "to": "06-20" },
-            { "type": "stage", "in": ["bulbing", "harvest"] }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "calendar",
+                "from": "05-01",
+                "to": "06-20"
+              },
+              {
+                "type": "stage",
+                "in": [
+                  "bulbing",
+                  "harvest"
+                ]
+              }
+            ]
+          },
           "resolvedBy": "harvestEnd",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         }
       ]
     },
-
     {
       "id": "daikon",
       "name": "大根",
@@ -174,19 +357,96 @@
       "difficulty": 2,
       "rotationYears": 2,
       "startMethods": {
-        "seed": { "label": "直まき", "stages": ["sowing", "thinning", "growing", "harvest"] }
+        "seed": {
+          "label": "種から（直まき）",
+          "stages": [
+            "sowing",
+            "thinning",
+            "growing",
+            "harvest"
+          ]
+        },
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ],
+          "warning": "大根は植え替えで根の先が傷みやすく、二股になったり曲がったりしやすい作物です。苗から育てる場合は、根鉢を崩さずに本葉2〜3枚までの若い苗を植えましょう。"
+        }
       },
       "defaultStartMethod": "seed",
       "stages": [
-        { "id": "sowing",   "name": "播種〜発芽", "startEvent": "sow",       "expectedDays": { "min": 3,  "max": 5 } },
-        { "id": "thinning", "name": "間引き期",   "startEvent": "germinate", "expectedDays": { "min": 20, "max": 30 } },
-        { "id": "growing",  "name": "根の肥大",   "startEvent": "thin3",     "expectedDays": { "min": 30, "max": 50 } },
-        { "id": "harvest",  "name": "収穫",       "startEvent": "harvestStart", "expectedDays": { "min": 7, "max": 30 } }
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 3,
+            "max": 5
+          }
+        },
+        {
+          "id": "thinning",
+          "name": "間引き期",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 20,
+            "max": 30
+          }
+        },
+        {
+          "id": "growing",
+          "name": "根の肥大",
+          "startEvent": "thin3",
+          "expectedDays": {
+            "min": 30,
+            "max": 50
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "根の肥大（苗から）",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 20,
+            "max": 70
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 7,
+            "max": 30
+          }
+        }
       ],
       "calendar": {
         "mid": {
-          "sow":     [{ "from": "08-25", "to": "09-20" }],
-          "harvest": [{ "from": "10-25", "to": "12-31" }]
+          "sow": [
+            {
+              "from": "08-25",
+              "to": "09-20"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "10-25",
+              "to": "12-31"
+            }
+          ]
         },
         "cold": null,
         "warm": null
@@ -197,77 +457,255 @@
           "action": "thin",
           "title": "間引き（1回目）",
           "message": "本葉1〜2枚の頃です。1か所3本に間引きましょう。",
-          "trigger": { "all": [
-            { "type": "daysSince", "event": "sow", "gte": 7, "dueBy": 14 },
-            { "type": "eventDone", "event": "thin1", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 7,
+                "dueBy": 14
+              },
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin1",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "daikon-thin-2",
           "action": "thin",
           "title": "間引き（2回目）＋追肥",
           "message": "本葉3〜4枚の頃です。2本に間引き、株の周りに追肥して軽く土寄せしましょう。",
-          "trigger": { "all": [
-            { "type": "eventDone", "event": "thin1", "done": true },
-            { "type": "daysSince", "event": "sow", "gte": 15, "dueBy": 25 },
-            { "type": "eventDone", "event": "thin2", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 15,
+                "dueBy": 25
+              },
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin2",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "daikon-thin-3",
           "action": "thin",
           "title": "間引き（3回目）＋追肥",
           "message": "本葉5〜6枚の頃です。1本に仕上げ、追肥と土寄せをしましょう。",
-          "trigger": { "all": [
-            { "type": "eventDone", "event": "thin2", "done": true },
-            { "type": "daysSince", "event": "sow", "gte": 25, "dueBy": 35 },
-            { "type": "eventDone", "event": "thin3", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 25,
+                "dueBy": 35
+              },
+              {
+                "type": "eventDone",
+                "event": "thin3",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin3",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "daikon-heavy-rain",
           "action": "notice",
           "title": "まとまった雨の予報",
           "message": "予報では近日中にまとまった雨が見込まれています。追肥の予定があれば、雨の後に回すと肥料が流れにくくなります。",
-          "trigger": { "all": [
-            { "type": "stage", "in": ["thinning", "growing"] },
-            { "type": "forecast", "metric": "precipSum", "days": 2, "op": "gte", "value": 20 }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "thinning",
+                  "growing",
+                  "transplanted",
+                  "established"
+                ]
+              },
+              {
+                "type": "forecast",
+                "metric": "precipSum",
+                "days": 2,
+                "op": "gte",
+                "value": 20
+              }
+            ]
+          },
           "resolvedBy": null,
-          "priority": 3, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 3,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "daikon-harvest-days",
           "action": "harvest",
           "title": "収穫の目安",
           "message": "播種から約60〜90日（品種による）。首が地上に出て太さが十分なら収穫しましょう。",
-          "trigger": { "all": [
-            { "type": "daysSince", "event": "sow", "gte": 60 }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 60
+              }
+            ]
+          },
           "resolvedBy": "harvestEnd",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "daikon-harvest-gdd",
           "action": "harvest",
           "title": "収穫の目安（積算温度）",
           "message": "積算温度から見て収穫適期に入りました。",
-          "trigger": { "all": [
-            { "type": "gddSince", "event": "sow", "base": 0, "gte": 1200 }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "gddSince",
+                "event": "sow",
+                "base": 0,
+                "gte": 1200
+              }
+            ]
+          },
           "resolvedBy": "harvestEnd",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft",
-          "enabled": false, "status": "needs_verification"
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": false,
+          "status": "needs_verification"
+        },
+        {
+          "id": "daikon-seedling-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "植え付けた苗が根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "daikon-seedling-fert-1",
+          "action": "fertilize",
+          "title": "追肥（1回目）",
+          "message": "定植から約14日。株の周りに追肥して軽く土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 14,
+                "dueBy": 25
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "daikon-seedling-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "定植から約45日〜（品種による）。首が地上に出て太さが十分なら収穫しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 45
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         }
       ]
     },
-
     {
       "id": "carrot",
       "name": "ニンジン",
@@ -275,19 +713,96 @@
       "difficulty": 3,
       "rotationYears": 2,
       "startMethods": {
-        "seed": { "label": "直まき", "stages": ["sowing", "thinning", "growing", "harvest"] }
+        "seed": {
+          "label": "種から（直まき）",
+          "stages": [
+            "sowing",
+            "thinning",
+            "growing",
+            "harvest"
+          ]
+        },
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ],
+          "warning": "ニンジンは植え替えで根の先が傷みやすく、二股になったり曲がったりしやすい作物です。苗から育てる場合は、根鉢を崩さずに若い苗を植えましょう。"
+        }
       },
       "defaultStartMethod": "seed",
       "stages": [
-        { "id": "sowing",   "name": "播種〜発芽", "startEvent": "sow",       "expectedDays": { "min": 7,  "max": 14 } },
-        { "id": "thinning", "name": "間引き期",   "startEvent": "germinate", "expectedDays": { "min": 30, "max": 45 } },
-        { "id": "growing",  "name": "根の肥大",   "startEvent": "thin3",     "expectedDays": { "min": 40, "max": 60 } },
-        { "id": "harvest",  "name": "収穫",       "startEvent": "harvestStart", "expectedDays": { "min": 14, "max": 60 } }
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 7,
+            "max": 14
+          }
+        },
+        {
+          "id": "thinning",
+          "name": "間引き期",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 30,
+            "max": 45
+          }
+        },
+        {
+          "id": "growing",
+          "name": "根の肥大",
+          "startEvent": "thin3",
+          "expectedDays": {
+            "min": 40,
+            "max": 60
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "根の肥大（苗から）",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 20,
+            "max": 70
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 14,
+            "max": 60
+          }
+        }
       ],
       "calendar": {
         "mid": {
-          "sow":     [{ "from": "07-15", "to": "08-20" }],
-          "harvest": [{ "from": "11-01", "to": "02-28" }]
+          "sow": [
+            {
+              "from": "07-15",
+              "to": "08-20"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "11-01",
+              "to": "02-28"
+            }
+          ]
         },
         "cold": null,
         "warm": null
@@ -298,66 +813,265 @@
           "action": "water",
           "title": "発芽まで乾燥させないで",
           "message": "ニンジンは発芽までの乾燥に弱い作物です。しばらく雨がないので、たっぷり水やりしましょう。",
-          "trigger": { "all": [
-            { "type": "stage", "in": ["sowing"] },
-            { "type": "observed", "metric": "dryDays", "op": "gte", "value": 2 }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "sowing"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
           "resolvedBy": null,
-          "priority": 1, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "carrot-thin-1",
           "action": "thin",
           "title": "間引き（1回目）",
           "message": "本葉1〜2枚の頃です。葉が触れ合わない程度に間引きましょう。",
-          "trigger": { "all": [
-            { "type": "eventDone", "event": "germinate", "done": true },
-            { "type": "daysSince", "event": "sow", "gte": 20, "dueBy": 30 },
-            { "type": "eventDone", "event": "thin1", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "germinate",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 20,
+                "dueBy": 30
+              },
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin1",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "carrot-thin-2",
           "action": "thin",
           "title": "間引き（2回目）＋追肥",
           "message": "本葉3〜4枚の頃です。株間5〜6cmに間引き、追肥して土寄せしましょう。",
-          "trigger": { "all": [
-            { "type": "eventDone", "event": "thin1", "done": true },
-            { "type": "daysSince", "event": "sow", "gte": 35, "dueBy": 50 },
-            { "type": "eventDone", "event": "thin2", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 35,
+                "dueBy": 50
+              },
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin2",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "carrot-thin-3",
           "action": "thin",
           "title": "間引き（3回目）＋追肥",
           "message": "本葉5〜6枚の頃です。株間10〜12cmに仕上げ、追肥と土寄せをしましょう。肩が出ると緑色になるので土をかぶせます。",
-          "trigger": { "all": [
-            { "type": "eventDone", "event": "thin2", "done": true },
-            { "type": "daysSince", "event": "sow", "gte": 50, "dueBy": 65 },
-            { "type": "eventDone", "event": "thin3", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 50,
+                "dueBy": 65
+              },
+              {
+                "type": "eventDone",
+                "event": "thin3",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin3",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "carrot-harvest",
           "action": "harvest",
           "title": "収穫の目安",
           "message": "播種から約100〜120日。試し掘りして太さを確認しましょう。",
-          "trigger": { "all": [
-            { "type": "daysSince", "event": "sow", "gte": 100 }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 100
+              }
+            ]
+          },
           "resolvedBy": "harvestEnd",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "carrot-seedling-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "植え付けた苗が根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "carrot-seedling-fert-1",
+          "action": "fertilize",
+          "title": "追肥（1回目）",
+          "message": "定植から約20日。株の周りに追肥して軽く土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 20,
+                "dueBy": 35
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "carrot-seedling-fert-2",
+          "action": "fertilize",
+          "title": "追肥（2回目）",
+          "message": "定植から約40日。株の周りに追肥して軽く土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 40,
+                "dueBy": 55
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize2",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize2",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "carrot-seedling-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "定植から約80日〜。試し掘りして太さを確認しましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 80
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         }
       ]
     },
-
     {
       "id": "turnip",
       "name": "カブ",
@@ -365,23 +1079,112 @@
       "difficulty": 1,
       "rotationYears": 2,
       "startMethods": {
-        "seed": { "label": "直まき", "stages": ["sowing", "thinning", "growing", "harvest"] }
+        "seed": {
+          "label": "種から（直まき）",
+          "stages": [
+            "sowing",
+            "thinning",
+            "growing",
+            "harvest"
+          ]
+        },
+        "seedling": {
+          "label": "苗から",
+          "stages": [
+            "transplanted",
+            "established",
+            "harvest"
+          ],
+          "warning": "カブは植え替えると根が傷みやすいので、根鉢を崩さずに本葉2〜3枚までの若い苗を植えましょう。"
+        }
       },
       "defaultStartMethod": "seed",
       "varieties": {
-        "small":  { "label": "小カブ", "harvestDays": { "min": 40, "max": 50 } },
-        "medium": { "label": "中カブ", "harvestDays": { "min": 60, "max": 70 } }
+        "small": {
+          "label": "小カブ",
+          "harvestDays": {
+            "min": 40,
+            "max": 50
+          }
+        },
+        "medium": {
+          "label": "中カブ",
+          "harvestDays": {
+            "min": 60,
+            "max": 70
+          }
+        }
       },
       "stages": [
-        { "id": "sowing",   "name": "播種〜発芽", "startEvent": "sow",       "expectedDays": { "min": 3,  "max": 5 } },
-        { "id": "thinning", "name": "間引き期",   "startEvent": "germinate", "expectedDays": { "min": 15, "max": 25 } },
-        { "id": "growing",  "name": "根の肥大",   "startEvent": "thin3",     "expectedDays": { "min": 15, "max": 35 } },
-        { "id": "harvest",  "name": "収穫",       "startEvent": "harvestStart", "expectedDays": { "min": 7, "max": 14 } }
+        {
+          "id": "sowing",
+          "name": "播種〜発芽",
+          "startEvent": "sow",
+          "expectedDays": {
+            "min": 3,
+            "max": 5
+          }
+        },
+        {
+          "id": "thinning",
+          "name": "間引き期",
+          "startEvent": "germinate",
+          "expectedDays": {
+            "min": 15,
+            "max": 25
+          }
+        },
+        {
+          "id": "growing",
+          "name": "根の肥大",
+          "startEvent": "thin3",
+          "expectedDays": {
+            "min": 15,
+            "max": 35
+          }
+        },
+        {
+          "id": "transplanted",
+          "name": "定植〜活着",
+          "startEvent": "transplant",
+          "expectedDays": {
+            "min": 5,
+            "max": 10
+          }
+        },
+        {
+          "id": "established",
+          "name": "根の肥大（苗から）",
+          "startEvent": "rooted",
+          "expectedDays": {
+            "min": 20,
+            "max": 70
+          }
+        },
+        {
+          "id": "harvest",
+          "name": "収穫",
+          "startEvent": "harvestStart",
+          "expectedDays": {
+            "min": 7,
+            "max": 14
+          }
+        }
       ],
       "calendar": {
         "mid": {
-          "sow":     [{ "from": "09-01", "to": "10-15" }],
-          "harvest": [{ "from": "10-15", "to": "12-20" }]
+          "sow": [
+            {
+              "from": "09-01",
+              "to": "10-15"
+            }
+          ],
+          "harvest": [
+            {
+              "from": "10-15",
+              "to": "12-20"
+            }
+          ]
         },
         "cold": null,
         "warm": null
@@ -392,49 +1195,195 @@
           "action": "thin",
           "title": "間引き（1回目）",
           "message": "子葉が開いた頃です。混み合ったところを間引きましょう。",
-          "trigger": { "all": [
-            { "type": "daysSince", "event": "sow", "gte": 5, "dueBy": 10 },
-            { "type": "eventDone", "event": "thin1", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 5,
+                "dueBy": 10
+              },
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin1",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "turnip-thin-2",
           "action": "thin",
           "title": "間引き（2回目）＋追肥",
           "message": "本葉2〜3枚の頃です。株間を広げて、追肥と軽い土寄せをしましょう。",
-          "trigger": { "all": [
-            { "type": "eventDone", "event": "thin1", "done": true },
-            { "type": "daysSince", "event": "sow", "gte": 12, "dueBy": 20 },
-            { "type": "eventDone", "event": "thin2", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin1",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 12,
+                "dueBy": 20
+              },
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin2",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "turnip-thin-3",
           "action": "thin",
           "title": "間引き（3回目）",
           "message": "本葉4〜5枚の頃です。小カブなら株間10cm程度に仕上げましょう。",
-          "trigger": { "all": [
-            { "type": "eventDone", "event": "thin2", "done": true },
-            { "type": "daysSince", "event": "sow", "gte": 20, "dueBy": 30 },
-            { "type": "eventDone", "event": "thin3", "done": false }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "eventDone",
+                "event": "thin2",
+                "done": true
+              },
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 20,
+                "dueBy": 30
+              },
+              {
+                "type": "eventDone",
+                "event": "thin3",
+                "done": false
+              }
+            ]
+          },
           "resolvedBy": "thin3",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         },
         {
           "id": "turnip-harvest",
           "action": "harvest",
           "title": "収穫の目安",
           "message": "小カブは直径5cm前後が目安です。取り遅れると割れたりスが入ったりします。",
-          "trigger": { "all": [
-            { "type": "daysSince", "event": "sow", "gte": 40 }
-          ] },
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "sow",
+                "gte": 40
+              }
+            ]
+          },
           "resolvedBy": "harvestEnd",
-          "priority": 2, "sources": ["draft-general"], "confidence": "draft", "enabled": true
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "turnip-seedling-water",
+          "action": "water",
+          "title": "植え付け後の水やり",
+          "message": "植え付けた苗が根付くまでは乾燥に注意が必要です。しばらく雨がないので水やりしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "stage",
+                "in": [
+                  "transplanted"
+                ]
+              },
+              {
+                "type": "observed",
+                "metric": "dryDays",
+                "op": "gte",
+                "value": 2
+              }
+            ]
+          },
+          "resolvedBy": null,
+          "priority": 1,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "turnip-seedling-fert-1",
+          "action": "fertilize",
+          "title": "追肥（1回目）",
+          "message": "定植から約10日。株の周りに追肥して軽く土寄せしましょう。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 10,
+                "dueBy": 20
+              },
+              {
+                "type": "eventDone",
+                "event": "fertilize1",
+                "done": false
+              }
+            ]
+          },
+          "resolvedBy": "fertilize1",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
+        },
+        {
+          "id": "turnip-seedling-harvest",
+          "action": "harvest",
+          "title": "収穫の目安",
+          "message": "小カブは直径5cm前後が目安です。取り遅れると割れたりスが入ったりします。",
+          "trigger": {
+            "all": [
+              {
+                "type": "daysSince",
+                "event": "transplant",
+                "gte": 25
+              }
+            ]
+          },
+          "resolvedBy": "harvestEnd",
+          "priority": 2,
+          "sources": [
+            "draft-general"
+          ],
+          "confidence": "draft",
+          "enabled": true
         }
       ]
     }

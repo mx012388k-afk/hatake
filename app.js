@@ -122,7 +122,17 @@ function eventsForPlanting(crop, planting) {
     const st = crop.stages.find((s) => s.id === sid);
     if (st) set.add(st.startEvent);
   });
-  crop.rules.forEach((r) => {
+  const methodStageEvents = new Set(set);
+  // この開始方法で成立しうるルールだけを対象にする（例：苗からの場合、種まき起点の間引きルールは除外）
+  const applicable = (r) => (r.trigger.all || []).every((c) => {
+    if (c.type === "daysSince" || c.type === "gddSince") {
+      const isStageEvent = crop.stages.some((s) => s.startEvent === c.event);
+      return !isStageEvent || methodStageEvents.has(c.event);
+    }
+    if (c.type === "stage") return c.in.some((sid) => method.stages.includes(sid));
+    return true;
+  });
+  crop.rules.filter((r) => r.enabled !== false && applicable(r)).forEach((r) => {
     if (r.resolvedBy) set.add(r.resolvedBy);
     (r.trigger.all || []).forEach((c) => {
       if (c.type === "eventDone" || c.type === "daysSince" || c.type === "gddSince") set.add(c.event);
@@ -514,6 +524,10 @@ function syncStartLabel() {
   if (!crop) return;
   const ev = firstEventOf(crop, $("#pMethod").value);
   $("#pStartLabel").textContent = (EVENT_LABELS[ev] || ev) + "の日";
+  const m = crop.startMethods[$("#pMethod").value];
+  const note = $("#pMethodNote");
+  note.textContent = (m && m.warning) || "";
+  note.hidden = !(m && m.warning);
 }
 
 $("#pCrop").addEventListener("change", syncMethodOptions);
