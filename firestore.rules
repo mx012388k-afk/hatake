@@ -1,0 +1,35 @@
+rules_version = '2';
+
+// データ構造
+//   users/{uid}                 … region, displayName, plan, trialStartedAt
+//   users/{uid}/fields/{id}     … 畑（名前・座標）
+//   users/{uid}/plantings/{id}  … 作付け（作物・開始方法・イベント日付）
+//   users/{uid}/logs/{id}       … 作業記録の履歴
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      // 初回作成時は必ず試用プランで、開始日時はサーバー時刻
+      allow create: if isOwner(uid)
+        && request.resource.data.plan == 'trial'
+        && request.resource.data.trialStartedAt == request.time;
+
+      // 本人による更新では plan と trialStartedAt を変更させない（課金状態は将来サーバー側で更新）
+      allow update: if isOwner(uid)
+        && request.resource.data.plan == resource.data.plan
+        && request.resource.data.trialStartedAt == resource.data.trialStartedAt;
+
+      allow delete: if false;
+
+      match /{sub}/{docId} {
+        allow read, write: if isOwner(uid) && sub in ['fields', 'plantings', 'logs'];
+      }
+    }
+  }
+}

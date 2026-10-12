@@ -1,0 +1,14 @@
+{
+  "name": "畑ノート",
+  "short_name": "畑ノート",
+  "description": "種まきから収穫まで、天気と作業記録から今日やることを教えてくれる菜園ノート",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4ee",
+  "theme_color": "#3f6b3a",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
